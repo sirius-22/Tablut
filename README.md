@@ -16,4 +16,5 @@ Progetto Tablut Fondamenti di Intelligenza Artificiale a.a. 2024/2025 - Universi
 * [git del prof](https://github.com/AGalassi/TablutCompetition)
 * [tagli alfa beta+python](https://github.com/MatteoFasulo/Tablut)
 * [Iterative Deepening search combined with MinMax algorithm and AlphaBeta cuts + java + Primo posto nel 2020](https://github.com/gmurro/tablut)
-* [ibrido tra tree search algorithm e NN + python](https://github.com/hesamsheikh/TablutAI) 
+* [ibrido tra tree search algorithm e NN + python](https://github.com/hesamsheikh/TablutAI)
+* [Java Deep Library - Framework java per modelli di deep learning/interazione con python](https://github.com/deepjavalibrary)
