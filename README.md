@@ -3,7 +3,7 @@ Progetto Tablut Fondamenti di Intelligenza Artificiale a.a. 2024/2025 - Universi
 
 # Deadlines 🕔 :
 * Iscrizione - 20 aprile 2025
-* Invio progetto finito - 25 Aprile 2025 23:59
+* Invio progetto finito - 25 Maggio 2025 23:59
 
 # Decisioni da prendere 💬 :
 * [Scegliere nome](possibile_nome.txt) 
