@@ -781,7 +781,7 @@ public class GameAshtonTablut implements Game {
 		return state.getTurn();
 	}
 
-// RICONTROLLARE TUTTE LE CONDIZIONI ->
+	// RICONTROLLARE TUTTE LE CONDIZIONI ->
 	// e.g. non guardare i pedoni iniziali, ma solo i loro successivi nella board
 	@Override
 	public List<Action> getActions(State state) {
