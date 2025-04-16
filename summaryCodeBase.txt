@@ -133,6 +133,46 @@ Summary of the code base:
         public void run()
             // while(true) { ... }
 
+- SERVER 
+    contains all classes to model the server 
+
+    - Server 
+        Class that represent the server of the match: 2 clients with TCP connection
+        can connect and start to play 
+
+        public static int connectionTimeout = 300; // timeout for waiting for a client 
+                                                      to connect 
+        private State state; // state of the game
+        private int time; // number of seconds allowed for a decision
+        private int moveCache; // number of states kept in memory for the detcetion of a draw 
+        protected boolean enableGui; // whether the gui must be enabled or not 
+        private String theGson; // JSON string used to communicate 
+        private Action move; // action chosen by a player 
+        private int errors; // errors allowed 
+        private int repeated; // repeated positions allowed 
+
+        private ServerSocket socketWhite; 
+        private ServerSocket socketBlack;
+        private Socket white;
+        private Socket black;
+
+        private int blackErrors;
+        private int whiteErrors;
+        private int cacheSize;
+        
+        private Game game;
+        private Gson gson;
+        protected Gui theGui;
+
+        protected int gameC; // integer that represents the game type
+
+        public Server( ... ) // constructor 
+        public void initializeGui(State state) 
+
+        public static void main(String[] args)
+
+        ...
+
 
 
             
