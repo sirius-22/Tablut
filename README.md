@@ -1,4 +1,4 @@
-<h1>Tablut</h1> 
+<h1>SAME_Tablut</h1> 
 Progetto Tablut Fondamenti di Intelligenza Artificiale a.a. 2024/2025 - Università di Bologna
 
 # Deadlines 🕔 :
@@ -6,8 +6,8 @@ Progetto Tablut Fondamenti di Intelligenza Artificiale a.a. 2024/2025 - Universi
 * Invio progetto finito - 25 Maggio 2025 23:59
 
 # Decisioni da prendere 💬 :
-* [Scegliere nome](possibile_nome.txt) 
-* Linguaggio da utilizzare
+* [Scegliere nome](possibile_nome.txt) --> SAME ✔️
+* Linguaggio da utilizzare --> java ✔️
 * modello / strategia
 * 
 
