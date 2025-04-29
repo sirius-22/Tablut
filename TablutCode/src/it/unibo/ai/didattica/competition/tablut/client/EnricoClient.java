@@ -41,7 +41,7 @@ public class EnricoClient extends TablutClient {
 	}
 
 	public EnricoClient(String player) throws UnknownHostException, IOException {
-		this(player, "random", 4, 60, "localhost");
+		this(player, "random", 4, 30, "localhost");
 	}
 
 	public static void main(String[] args) throws UnknownHostException, IOException, ClassNotFoundException {
@@ -49,7 +49,7 @@ public class EnricoClient extends TablutClient {
 		String role = "";
 		String name = "random";
 		String ipAddress = "localhost";
-		int timeout = 60;
+		int timeout = 30;
 		// TODO: change the behavior?
 		if (args.length < 1) {
 			System.out.println("You must specify which player you are (WHITE or BLACK)");
@@ -129,7 +129,7 @@ public class EnricoClient extends TablutClient {
 				Thread.sleep(1000);
 			} catch (InterruptedException e) {
 			}
-			
+
 			if (this.getPlayer().equals(Turn.WHITE)) { // WHITE
 				if (state.getTurn().equals(StateTablut.Turn.WHITE)) {
 

@@ -57,6 +57,8 @@ public class GameAshtonTablut implements Game {
 	private List<State> drawConditions;
 	// private State theoreticalState; the client has this
 
+	private int stupidPrint = 0;
+
 	public GameAshtonTablut(int repeated_moves_allowed, int cache_size, String logs_folder, String whiteName,
 			String blackName) {
 		this(new StateTablut(), repeated_moves_allowed, cache_size, logs_folder, whiteName, blackName);
@@ -728,6 +730,25 @@ public class GameAshtonTablut implements Game {
 		return state;
 	}
 
+	private State hypoMovePawn(State state, Action a) {
+		State.Pawn pawn = state.getPawn(a.getRowFrom(), a.getColumnFrom());
+		State.Pawn[][] newBoard = state.getBoard();
+		// State newState = new State();
+		this.loggGame.fine("Movimento pedina");
+		// libero il trono o una casella qualunque
+		if (a.getColumnFrom() == 4 && a.getRowFrom() == 4) {
+			newBoard[a.getRowFrom()][a.getColumnFrom()] = State.Pawn.THRONE;
+		} else {
+			newBoard[a.getRowFrom()][a.getColumnFrom()] = State.Pawn.EMPTY;
+		}
+
+		// metto nel nuovo tabellone la pedina mossa
+		newBoard[a.getRowTo()][a.getColumnTo()] = pawn;
+		// aggiorno il tabellone
+		state.setBoard(newBoard);
+		return state;
+	}
+
 	public File getGameLog() {
 		return gameLog;
 	}
@@ -786,16 +807,16 @@ public class GameAshtonTablut implements Game {
 	@Override
 	public List<Action> getActions(State state) {
 		System.out.println("------------------------------------------------------------");
-		
+
 		List<Action> result = new ArrayList<Action>();
 		List<int[]> pawns = new ArrayList<int[]>();
 		List<int[]> empty = new ArrayList<int[]>();
 		int[] buf;
 
 		if (state.getTurn().equals(StateTablut.Turn.WHITE)) {
-			
+
 			System.out.println("WHITE TURN");
-			
+
 			for (int i = 0; i < state.getBoard().length; i++) {
 				for (int j = 0; j < state.getBoard().length; j++) {
 					if (state.getPawn(i, j).equalsPawn(State.Pawn.WHITE.toString())
@@ -817,7 +838,7 @@ public class GameAshtonTablut implements Game {
 			for (int[] p : pawns) {
 				int x = p[0], y = p[1];
 				boolean blocked = false;
-				
+
 				System.out.println("Trying to calculate white pawn at [" + x + ", " + y + "]");
 
 				// controllo in alto -> x--
@@ -923,9 +944,9 @@ public class GameAshtonTablut implements Game {
 
 			// BLACK player
 		} else if (state.getTurn().equals(StateTablut.Turn.BLACK)) {
-			
+
 			System.out.println("BLACK TURN");
-			
+
 			for (int i = 0; i < state.getBoard().length; i++) {
 				for (int j = 0; j < state.getBoard().length; j++) {
 					if (state.getPawn(i, j).equalsPawn(State.Pawn.BLACK.toString())) {
@@ -950,26 +971,32 @@ public class GameAshtonTablut implements Game {
 			for (int[] p : pawns) {
 				int x = p[0], y = p[1];
 				boolean blocked = false;
-				
+
 				System.out.println("Trying to calculate black pawn at [" + x + ", " + y + "]");
 
 				// controllo in alto -> x--
 				for (int i = x - 1; i >= 0 && !blocked; i--) {
-					
-					/*if ((state.getPawn(i, y).equalsPawn(State.Pawn.EMPTY.toString()) 
-							|| (this.citadels.contains(state.getBox(i, y)) && this.citadels.contains(state.getBox(x, y)))) 
-							&& !this.citadels.contains(state.getBox(i, y))
-							&& !state.getPawn(i, y).equalsPawn(State.Pawn.THRONE.toString()))*/
-					
-					/*if (state.getPawn(i, y).equalsPawn(State.Pawn.EMPTY.toString())
-							&& ((!this.citadels.contains(state.getBox(i, y)) && !this.citadels.contains(state.getBox(x, y))) || 
-									(this.citadels.contains(state.getBox(i, y)) && this.citadels.contains(state.getBox(x, y))))
-							&& !state.getPawn(i, y).equalsPawn(State.Pawn.THRONE.toString())) */
-					
-					
-					
-					if ((state.getPawn(i, y).equalsPawn(State.Pawn.EMPTY.toString()) 
-							|| (this.citadels.contains(state.getBox(i, y)) && this.citadels.contains(state.getBox(x, y)))) 
+
+					/*
+					 * if ((state.getPawn(i, y).equalsPawn(State.Pawn.EMPTY.toString()) ||
+					 * (this.citadels.contains(state.getBox(i, y)) &&
+					 * this.citadels.contains(state.getBox(x, y)))) &&
+					 * !this.citadels.contains(state.getBox(i, y)) && !state.getPawn(i,
+					 * y).equalsPawn(State.Pawn.THRONE.toString()))
+					 */
+
+					/*
+					 * if (state.getPawn(i, y).equalsPawn(State.Pawn.EMPTY.toString()) &&
+					 * ((!this.citadels.contains(state.getBox(i, y)) &&
+					 * !this.citadels.contains(state.getBox(x, y))) ||
+					 * (this.citadels.contains(state.getBox(i, y)) &&
+					 * this.citadels.contains(state.getBox(x, y)))) && !state.getPawn(i,
+					 * y).equalsPawn(State.Pawn.THRONE.toString()))
+					 */
+
+					if ((state.getPawn(i, y).equalsPawn(State.Pawn.EMPTY.toString())
+							|| (this.citadels.contains(state.getBox(i, y))
+									&& this.citadels.contains(state.getBox(x, y))))
 							&& !this.citadels.contains(state.getBox(i, y))
 							&& !state.getPawn(i, y).equalsPawn(State.Pawn.THRONE.toString())) {
 						// This is a valid cell where the pawn could move
@@ -994,8 +1021,9 @@ public class GameAshtonTablut implements Game {
 				blocked = false;
 				// controllo in basso -> x++
 				for (int i = x + 1; i < state.getBoard().length && !blocked; i++) {
-					if ((state.getPawn(i, y).equalsPawn(State.Pawn.EMPTY.toString()) 
-							|| (this.citadels.contains(state.getBox(i, y)) && this.citadels.contains(state.getBox(x, y)))) 
+					if ((state.getPawn(i, y).equalsPawn(State.Pawn.EMPTY.toString())
+							|| (this.citadels.contains(state.getBox(i, y))
+									&& this.citadels.contains(state.getBox(x, y))))
 							&& !this.citadels.contains(state.getBox(i, y))
 							&& !state.getPawn(i, y).equalsPawn(State.Pawn.THRONE.toString())) {
 						// This is a valid cell where the pawn could move
@@ -1020,8 +1048,9 @@ public class GameAshtonTablut implements Game {
 				blocked = false;
 				// controllo in sinistra -> y--
 				for (int j = y - 1; j >= 0 && !blocked; j--) {
-					if ((state.getPawn(x, j).equalsPawn(State.Pawn.EMPTY.toString()) 
-							|| (this.citadels.contains(state.getBox(x, j)) && this.citadels.contains(state.getBox(x, y)))) 
+					if ((state.getPawn(x, j).equalsPawn(State.Pawn.EMPTY.toString())
+							|| (this.citadels.contains(state.getBox(x, j))
+									&& this.citadels.contains(state.getBox(x, y))))
 							&& !this.citadels.contains(state.getBox(x, j))
 							&& !state.getPawn(x, j).equalsPawn(State.Pawn.THRONE.toString())) {
 						// This is a valid cell where the pawn could move
@@ -1046,8 +1075,9 @@ public class GameAshtonTablut implements Game {
 				blocked = false;
 				// controllo in destra -> y++
 				for (int j = y + 1; j < state.getBoard().length && !blocked; j++) {
-					if ((state.getPawn(x, j).equalsPawn(State.Pawn.EMPTY.toString()) 
-							|| (this.citadels.contains(state.getBox(x, j)) && this.citadels.contains(state.getBox(x, y)))) 
+					if ((state.getPawn(x, j).equalsPawn(State.Pawn.EMPTY.toString())
+							|| (this.citadels.contains(state.getBox(x, j))
+									&& this.citadels.contains(state.getBox(x, y))))
 							&& !this.citadels.contains(state.getBox(x, j))
 							&& !state.getPawn(x, j).equalsPawn(State.Pawn.THRONE.toString())) {
 						// This is a valid cell where the pawn could move
@@ -1071,8 +1101,8 @@ public class GameAshtonTablut implements Game {
 
 			}
 		}
-		
-		System.out.println(result);
+		for (Action a : result)
+			System.out.println(a.toString());
 		return result;
 	}
 
@@ -1081,28 +1111,39 @@ public class GameAshtonTablut implements Game {
 	// for evaluation purpouses
 	public State getResult(State state, Action action) {
 		// se sono arrivato qui, muovo la pedina
-		state = this.movePawn(state, action);
+		// System.out.println("Before movePawn for action (" + action.toString() + "),
+		// the turn is " + state.getTurn());
+		State result = state.clone();
+
+		// state = this.movePawn(state, action);
+		result = this.movePawn(result, action);
+		if (stupidPrint++ <= 10)
+			System.out.println(action.toString() + " //// \n" + result.boardString());
+		// state = this.movePawn(state, action);
+
+		// System.out.println("After movePawn for action (" + action.toString() + "),
+		// the turn is " + state.getTurn());
 
 		// a questo punto controllo lo stato per eventuali catture
-		if (state.getTurn().equalsTurn("W")) {
-			state = this.checkCaptureBlack(state, action);
-		} else if (state.getTurn().equalsTurn("B")) {
-			state = this.checkCaptureWhite(state, action);
+		if (result.getTurn().equalsTurn("W")) {
+			result = this.checkCaptureBlack(result, action);
+		} else if (result.getTurn().equalsTurn("B")) {
+			result = this.checkCaptureWhite(result, action);
 		}
 
 		// if something has been captured, clear cache for draws
 		if (this.movesWithutCapturing == 0) {
 			this.drawConditions.clear();
-			//this.loggGame.fine("Capture! Draw cache cleared!");
+			// this.loggGame.fine("Capture! Draw cache cleared!");
 		}
 
 		// controllo pareggio
 		int trovati = 0;
 		for (State s : drawConditions) {
 
-			//System.out.println(s.toString());
+			// System.out.println(s.toString());
 
-			if (s.equals(state)) {
+			if (s.equals(result)) {
 				// DEBUG: //
 				// System.out.println("UGUALI:");
 				// System.out.println("STATO VECCHIO:\t" + s.toLinearString());
@@ -1111,8 +1152,9 @@ public class GameAshtonTablut implements Game {
 
 				trovati++;
 				if (trovati > repeated_moves_allowed) {
-					state.setTurn(State.Turn.DRAW);
-					//this.loggGame.fine("Partita terminata in pareggio per numero di stati ripetuti");
+					result.setTurn(State.Turn.DRAW);
+					// this.loggGame.fine("Partita terminata in pareggio per numero di stati
+					// ripetuti");
 					break;
 				}
 			} else {
@@ -1124,19 +1166,19 @@ public class GameAshtonTablut implements Game {
 			}
 		}
 		if (trovati > 0) {
-			//this.loggGame.fine("Equal states found: " + trovati);
+			// this.loggGame.fine("Equal states found: " + trovati);
 		}
 		if (cache_size >= 0 && this.drawConditions.size() > cache_size) {
 			this.drawConditions.remove(0);
 		}
-		this.drawConditions.add(state.clone());
+		this.drawConditions.add(result.clone());
 
-		//this.loggGame.fine("Current draw cache size: " + this.drawConditions.size());
+		// this.loggGame.fine("Current draw cache size: " + this.drawConditions.size());
 
-		//this.loggGame.fine("Stato:\n" + state.toString());
-		//System.out.println("Stato:\n" + state.toString());
+		// this.loggGame.fine("Stato:\n" + state.toString());
+		// System.out.println("Stato:\n" + state.toString());
 
-		return state;
+		return result;
 
 	}
 
