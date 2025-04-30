@@ -13,6 +13,7 @@ import it.unibo.ai.didattica.competition.tablut.domain.State;
 import it.unibo.ai.didattica.competition.tablut.domain.State.Turn;
 import it.unibo.ai.didattica.competition.tablut.domain.StateBrandub;
 import it.unibo.ai.didattica.competition.tablut.domain.StateTablut;
+import it.unibo.ai.didattica.competition.tablut.search.MyIterativeDeepeningAlphaBetaSearch;
 
 /**
  * 
@@ -110,8 +111,7 @@ public class EnricoClient extends TablutClient {
 		System.out.println("You are player " + this.getPlayer().toString() + "!");
 
 		// create iterative deepening slave
-		IterativeDeepeningAlphaBetaSearch<State, Action, State.Turn> oracoloEnrico = new IterativeDeepeningAlphaBetaSearch<State, Action, State.Turn>(
-				rules, -1, 1, this.timeout);
+		MyIterativeDeepeningAlphaBetaSearch oracoloEnrico = new MyIterativeDeepeningAlphaBetaSearch(rules, -1, 1, this.timeout);
 
 		// init gaming sequence
 		while (true) {

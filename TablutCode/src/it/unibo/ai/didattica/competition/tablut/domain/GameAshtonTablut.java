@@ -57,7 +57,8 @@ public class GameAshtonTablut implements Game {
 	private List<State> drawConditions;
 	// private State theoreticalState; the client has this
 
-	private int stupidPrint = 0;
+	//private int stupidPrint = 0;
+	private int kingX, kingY;
 
 	public GameAshtonTablut(int repeated_moves_allowed, int cache_size, String logs_folder, String whiteName,
 			String blackName) {
@@ -122,7 +123,8 @@ public class GameAshtonTablut implements Game {
 		// this.strangeCitadels.add("i5");
 		// this.strangeCitadels.add("e9");
 	}
-
+	
+	
 	@Override
 	public State checkMove(State state, Action a)
 			throws BoardException, ActionException, StopException, PawnException, DiagonalException, ClimbingException,
@@ -715,6 +717,11 @@ public class GameAshtonTablut implements Game {
 		} else {
 			newBoard[a.getRowFrom()][a.getColumnFrom()] = State.Pawn.EMPTY;
 		}
+		
+		if (state.getPawn(a.getRowFrom(), a.getColumnFrom()).equals(State.Pawn.KING)) {
+			kingX = a.getRowTo();
+			kingY = a.getColumnTo();
+		}
 
 		// metto nel nuovo tabellone la pedina mossa
 		newBoard[a.getRowTo()][a.getColumnTo()] = pawn;
@@ -824,6 +831,12 @@ public class GameAshtonTablut implements Game {
 						buf = new int[2];
 						buf[0] = i;
 						buf[1] = j;
+						
+						if (state.getPawn(i, j).equalsPawn(State.Pawn.KING.toString())) {
+							kingX = i;
+							kingY = j;
+						}
+						
 						pawns.add(buf);
 					} else if (state.getPawn(i, j).equalsPawn(State.Pawn.EMPTY.toString())) {
 						buf = new int[2];
@@ -1117,8 +1130,8 @@ public class GameAshtonTablut implements Game {
 
 		// state = this.movePawn(state, action);
 		result = this.movePawn(result, action);
-		if (stupidPrint++ <= 10)
-			System.out.println(action.toString() + " //// \n" + result.boardString());
+		//if (stupidPrint++ <= 10)
+		//System.out.println(action.toString() + " //// \n" + result.boardString());
 		// state = this.movePawn(state, action);
 
 		// System.out.println("After movePawn for action (" + action.toString() + "),
@@ -1191,16 +1204,69 @@ public class GameAshtonTablut implements Game {
 	@Override
 	public double getUtility(State state, Turn player) {
 		double result = 0;
-
+		
 		if ((state.getTurn().equals(State.Turn.BLACKWIN) && player.equals(State.Turn.BLACK))
 				|| state.getTurn().equals(State.Turn.WHITEWIN) && player.equals(State.Turn.WHITE))
 			result = 1;
 		else if ((state.getTurn().equals(State.Turn.WHITEWIN) && player.equals(State.Turn.BLACK))
 				|| state.getTurn().equals(State.Turn.BLACKWIN) && player.equals(State.Turn.WHITE))
-			result = 0;
+			result = -1;
 		else if (state.getTurn().equals(State.Turn.DRAW))
-			result = 0.5;
+			result = 0;
+		else {
+			
+			// HEURISTICS FOR NON TERMINAL STATES
+			
+			
+			// WHITE PLAYER
+			if (player.equals(State.Turn.WHITE)) {
+				result += (1 - (double)state.getNumberOf(State.Pawn.BLACK) / 16) * 0.2;
+				result -= (1 - (double)state.getNumberOf(State.Pawn.WHITE) / 8) * 0.2;
+				
+				result += getValueKing(state);
+				
+				//result += getValueWhitePawns(state);
+				//result -= getValueBlackPawn(state);
+			} 
+			
+			// BLACK PLAYER
+			else if (player.equals(State.Turn.BLACK)) {
+				result -= (1 - state.getNumberOf(State.Pawn.BLACK) / 16) * 0.2;
+				result += (1 - state.getNumberOf(State.Pawn.WHITE) / 8) * 0.2;
+				
+				// add heuristic to compute capturing KING
+					// ...
+			}
+			
+			
+		}
+		
+		
+		System.out.println("The result is " + result);
 		return result;
+	}
+	
+	private double getValueKing(State state) {
+		int minDistanceX = Math.min(kingX, state.getBoard().length - kingX);
+		int minDistanceY = Math.min(kingY, state.getBoard().length - kingY);
+		int minDistance = Math.min(minDistanceX, minDistanceY);
+		
+		return ((double)(4 - minDistance) / 4) * 0.15;
+	}
+	
+	
+	private double getValueWhitePawns(State state) {
+		
+		// CHECK PAWN STRUCTURE
+			// e.g. if a pawn can surround many black pawns -> more value
+		
+		// DEVELOPMENT ?? 
+			// i.e. who has more pieces out?
+		
+		// KING SAFETY
+			// structural weakness in king's position
+		
+		return 0;
 	}
 
 }
