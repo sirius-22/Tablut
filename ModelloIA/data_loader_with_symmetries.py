@@ -70,7 +70,7 @@ def parse_structured_match_file(filepath):
     return data
 
 # Caricamento di tutte le partite strutturate da una cartella
-def load_all_structured_matches(folder_path):
+def  load_dataset_from_folder(folder_path):
     dataset = []
     for filename in os.listdir(folder_path):
         if filename.endswith(".txt"):
