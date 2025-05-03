@@ -1,6 +1,6 @@
 # train_setup.py (versione aggiornata per log con struttura nuova)
 
-#from data_loader import load_all_structured_matches, TablutDataset
+#from data_loader_with_symmetries import load_dataset_from_folder, TablutDataset
 from torch.utils.data import DataLoader
 
 # Percorso alla cartella contenente i file delle partite
