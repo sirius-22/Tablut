@@ -8,7 +8,7 @@ DATASET_PATH = "/kaggle/input/predataset/PreDataset/"  # Modifica questo percors
 
 # Caricamento dei dati da tutti i file
 print("Caricamento dei dati...")
-data = load_all_structured_matches(DATASET_PATH)
+data = load_dataset_from_folder(DATASET_PATH)
 print(f"Totale stati caricati: {len(data)}")
 
 # Creazione del dataset personalizzato
