@@ -2,7 +2,7 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 from torch.utils.data import DataLoader
-from data_loader import TablutDataset  # Assicura che il file data_loader.py sia nello stesso percorso
+from data_loader_with_symmetries import TablutDataset  # Assicura che il file data_loader.py sia nello stesso percorso
 import pickle
 
 # Parametri
