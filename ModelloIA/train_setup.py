@@ -1,17 +1,29 @@
-# train_setup.py (versione aggiornata per log con struttura nuova)
 
 #from data_loader_with_symmetries import load_dataset_from_folder, TablutDataset
 from torch.utils.data import DataLoader
+import pickle
+from pathlib import Path
 
 # Percorso alla cartella contenente i file delle partite
 DATASET_PATH = "/kaggle/input/predataset/PreDataset/"  # Modifica questo percorso se necessario
+#percorso salvataggio dati 
+OUTPUTDIR_PATH = "/kaggle/working/processed_data/"
+OUTPUT_PATH = OUTPUTDIR_PATH + "states_dataset.pkl"
+
+# Create a directory if it is not there, so we can save files and results in it
+Path(f"{OUTPUTDIR_PATH}").mkdir(parents=True, exist_ok=True)
 
 # Caricamento dei dati da tutti i file
 print("Caricamento dei dati...")
 data = load_dataset_from_folder(DATASET_PATH)
 print(f"Totale stati caricati: {len(data)}")
 
-# Creazione del dataset personalizzato
+# salvataggio 
+print(f"Salvataggio del dataset pre-elaborato in: {OUTPUT_PATH}")
+with open(OUTPUT_PATH, "wb") as f:
+    pickle.dump(data, f)
+    
+# Creazione del dataset personalizzato (di controllo)
 dataset = TablutDataset(data)
 
 # Creazione del DataLoader per batch
