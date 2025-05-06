@@ -1,16 +1,18 @@
-<h1>SAME_Tablut</h1> 
-Progetto Tablut Fondamenti di Intelligenza Artificiale a.a. 2024/2025 - Università di Bologna
+<h1>✨SAME_Tablut✨</h1> 
 
-# Cose che mancano:
+⚫⚪⚫Progetto Tablut [Fondamenti di Intelligenza Artificiale](https://www.unibo.it/it/studiare/insegnamenti-competenze-trasversali-moocs/insegnamenti/insegnamento/2024/468002) a.a. 2024/2025 - Università di Bologna
+⚪⚫⚪
+# Cose da fare e/o migliorare 📈:
 - euristica
 - possibile simmetria
 - bitmap per stato?
+- allenare modello
 
-# Deadlines:
-* Iscrizione - 20 aprile 2025 
+# Deadlines 🕔:
+* Iscrizione - 20 aprile 2025 ✔️
 * Invio progetto finito - 25 Maggio 2025 23:59
 
-# Materiale utile:
+# Materiale utile ⚙️:
 * [dataset anni precedenti](http://ai.unibo.it/games/boardgamecompetition/tablut)
 * [git del prof](https://github.com/AGalassi/TablutCompetition)
 * [tagli alfa beta+python](https://github.com/MatteoFasulo/Tablut)
