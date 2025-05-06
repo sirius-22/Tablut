@@ -108,3 +108,9 @@ print(f"Test Loss: {avg_test_loss:.4f}")
 MODEL_SAVE_PATH = f"{OUTPUT_MODELS_PATH}/{MODEL_NAME}_cnn_model.pth"
 torch.save(model.state_dict(), MODEL_SAVE_PATH)
 print(f"Modello '{MODEL_NAME}' salvato in: {MODEL_SAVE_PATH}")
+
+# salvataggio in formato torchscript
+SCRIPTED_PATH = f"{OUTPUT_MODELS_PATH}/{MODEL_NAME}_cnn_scripted.pt"
+scripted_model = torch.jit.script(model)
+scripted_model.save(SCRIPTED_PATH)
+print(f"Modello salvato in TorchScript a: {SCRIPTED_PATH}")
