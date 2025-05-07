@@ -20,3 +20,4 @@
 * [ibrido tra tree search algorithm e NN + python](https://github.com/hesamsheikh/TablutAI)
 * [Java Deep Library - Framework java per modelli di deep learning/interazione con python](https://github.com/deepjavalibrary)
 * [30 ore di calcolo gratuite su gpu potente](https://www.kaggle.com/)
+* [transposition table](https://mediocrechess.blogspot.com/2007/01/guide-transposition-tables.html)
