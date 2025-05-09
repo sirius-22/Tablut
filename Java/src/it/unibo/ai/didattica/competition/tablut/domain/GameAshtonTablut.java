@@ -6,6 +6,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.logging.FileHandler;
 import java.util.logging.Level;
@@ -59,6 +60,8 @@ public class GameAshtonTablut implements Game {
 
 	//private int stupidPrint = 0;
 	private int kingX, kingY;
+	
+	//private HashMap<Byte[], Float> transitionTable;
 
 	public GameAshtonTablut(int repeated_moves_allowed, int cache_size, String logs_folder, String whiteName,
 			String blackName) {
@@ -789,6 +792,9 @@ public class GameAshtonTablut implements Game {
 	public void endGame(State state) {
 		this.loggGame.fine("Stato:\n" + state.toString());
 	}
+	
+	
+	//------------------------------------------------------------------------------------------------------------------------------------
 
 	// --- Methods implemented from the aima game interface ---
 	@Override
@@ -809,23 +815,23 @@ public class GameAshtonTablut implements Game {
 		return state.getTurn();
 	}
 
-	// RICONTROLLARE TUTTE LE CONDIZIONI ->
-	// e.g. non guardare i pedoni iniziali, ma solo i loro successivi nella board
+
 	@Override
 	public List<Action> getActions(State state) {
-		System.out.println("------------------------------------------------------------");
+		//System.out.println("------------------------------------------------------------");
 
 		List<Action> result = new ArrayList<Action>();
 		List<int[]> pawns = new ArrayList<int[]>();
 		List<int[]> empty = new ArrayList<int[]>();
 		int[] buf;
+		int i, j;
 
 		if (state.getTurn().equals(StateTablut.Turn.WHITE)) {
 
-			System.out.println("WHITE TURN");
+			//System.out.println("WHITE TURN");
 
-			for (int i = 0; i < state.getBoard().length; i++) {
-				for (int j = 0; j < state.getBoard().length; j++) {
+			for (i = 0; i < state.getBoard().length; i++) {
+				for (j = 0; j < state.getBoard().length; j++) {
 					if (state.getPawn(i, j).equalsPawn(State.Pawn.WHITE.toString())
 							|| state.getPawn(i, j).equalsPawn(State.Pawn.KING.toString())) {
 						buf = new int[2];
@@ -850,12 +856,11 @@ public class GameAshtonTablut implements Game {
 			// calcolo delle mosse dei pedoni trovati
 			for (int[] p : pawns) {
 				int x = p[0], y = p[1];
-				boolean blocked = false;
 
-				System.out.println("Trying to calculate white pawn at [" + x + ", " + y + "]");
+				//System.out.println("Trying to calculate white pawn at [" + x + ", " + y + "]");
 
 				// controllo in alto -> x--
-				for (int i = x - 1; i >= 0 && !blocked; i--) {
+				for (i = x - 1; i >= 0; i--) {
 					if (state.getPawn(i, y).equalsPawn(State.Pawn.EMPTY.toString())
 							&& !this.citadels.contains(state.getBox(i, y))
 							&& !state.getPawn(i, y).equalsPawn(State.Pawn.THRONE.toString())) {
@@ -872,15 +877,14 @@ public class GameAshtonTablut implements Game {
 						}
 
 					} else {
-						blocked = true;
+						break;
 					}
 					// se la cella figura nell'array delle celle vuote -> sali ancora
 					// else -> finisci e passa alla possa
 				}
 
-				blocked = false;
 				// controllo in basso -> x++
-				for (int i = x + 1; i < state.getBoard().length && !blocked; i++) {
+				for (i = x + 1; i < state.getBoard().length; i++) {
 					if (state.getPawn(i, y).equalsPawn(State.Pawn.EMPTY.toString())
 							&& !this.citadels.contains(state.getBox(i, y))
 							&& !state.getPawn(i, y).equalsPawn(State.Pawn.THRONE.toString())) {
@@ -897,15 +901,14 @@ public class GameAshtonTablut implements Game {
 						}
 
 					} else {
-						blocked = true;
+						break;
 					}
 					// se la cella figura nell'array delle celle vuote -> sali ancora
 					// else -> finisci e passa alla possa
 				}
 
-				blocked = false;
 				// controllo in sinistra -> y--
-				for (int j = y - 1; j >= 0 && !blocked; j--) {
+				for (j = y - 1; j >= 0; j--) {
 					if (state.getPawn(x, j).equalsPawn(State.Pawn.EMPTY.toString())
 							&& !this.citadels.contains(state.getBox(x, j))
 							&& !state.getPawn(x, j).equalsPawn(State.Pawn.THRONE.toString())) {
@@ -922,15 +925,14 @@ public class GameAshtonTablut implements Game {
 						}
 
 					} else {
-						blocked = true;
+						break;
 					}
 					// se la cella figura nell'array delle celle vuote -> sali ancora
 					// else -> finisci e passa alla possa
 				}
 
-				blocked = false;
 				// controllo in destra -> y++
-				for (int j = y + 1; j < state.getBoard().length && !blocked; j++) {
+				for (j = y + 1; j < state.getBoard().length; j++) {
 					if (state.getPawn(x, j).equalsPawn(State.Pawn.EMPTY.toString())
 							&& !this.citadels.contains(state.getBox(x, j))
 							&& !state.getPawn(x, j).equalsPawn(State.Pawn.THRONE.toString())) {
@@ -947,7 +949,7 @@ public class GameAshtonTablut implements Game {
 						}
 
 					} else {
-						blocked = true;
+						break;
 					}
 					// se la cella figura nell'array delle celle vuote -> sali ancora
 					// else -> finisci e passa alla possa
@@ -958,10 +960,10 @@ public class GameAshtonTablut implements Game {
 			// BLACK player
 		} else if (state.getTurn().equals(StateTablut.Turn.BLACK)) {
 
-			System.out.println("BLACK TURN");
+			//System.out.println("BLACK TURN");
 
-			for (int i = 0; i < state.getBoard().length; i++) {
-				for (int j = 0; j < state.getBoard().length; j++) {
+			for (i = 0; i < state.getBoard().length; i++) {
+				for (j = 0; j < state.getBoard().length; j++) {
 					if (state.getPawn(i, j).equalsPawn(State.Pawn.BLACK.toString())) {
 						buf = new int[2];
 						buf[0] = i;
@@ -983,12 +985,11 @@ public class GameAshtonTablut implements Game {
 			// calcolo delle mosse dei pedoni trovati
 			for (int[] p : pawns) {
 				int x = p[0], y = p[1];
-				boolean blocked = false;
 
-				System.out.println("Trying to calculate black pawn at [" + x + ", " + y + "]");
+				//System.out.println("Trying to calculate black pawn at [" + x + ", " + y + "]");
 
 				// controllo in alto -> x--
-				for (int i = x - 1; i >= 0 && !blocked; i--) {
+				for (i = x - 1; i >= 0; i--) {
 
 					/*
 					 * if ((state.getPawn(i, y).equalsPawn(State.Pawn.EMPTY.toString()) ||
@@ -1025,15 +1026,14 @@ public class GameAshtonTablut implements Game {
 						}
 
 					} else {
-						blocked = true;
+						break;
 					}
 					// se la cella figura nell'array delle celle vuote -> sali ancora
 					// else -> finisci e passa alla possa
 				}
 
-				blocked = false;
 				// controllo in basso -> x++
-				for (int i = x + 1; i < state.getBoard().length && !blocked; i++) {
+				for (i = x + 1; i < state.getBoard().length; i++) {
 					if ((state.getPawn(i, y).equalsPawn(State.Pawn.EMPTY.toString())
 							|| (this.citadels.contains(state.getBox(i, y))
 									&& this.citadels.contains(state.getBox(x, y))))
@@ -1052,15 +1052,14 @@ public class GameAshtonTablut implements Game {
 						}
 
 					} else {
-						blocked = true;
+						break;
 					}
 					// se la cella figura nell'array delle celle vuote -> sali ancora
 					// else -> finisci e passa alla possa
 				}
 
-				blocked = false;
 				// controllo in sinistra -> y--
-				for (int j = y - 1; j >= 0 && !blocked; j--) {
+				for (j = y - 1; j >= 0; j--) {
 					if ((state.getPawn(x, j).equalsPawn(State.Pawn.EMPTY.toString())
 							|| (this.citadels.contains(state.getBox(x, j))
 									&& this.citadels.contains(state.getBox(x, y))))
@@ -1079,15 +1078,14 @@ public class GameAshtonTablut implements Game {
 						}
 
 					} else {
-						blocked = true;
+						break;
 					}
 					// se la cella figura nell'array delle celle vuote -> sali ancora
 					// else -> finisci e passa alla possa
 				}
 
-				blocked = false;
 				// controllo in destra -> y++
-				for (int j = y + 1; j < state.getBoard().length && !blocked; j++) {
+				for (j = y + 1; j < state.getBoard().length; j++) {
 					if ((state.getPawn(x, j).equalsPawn(State.Pawn.EMPTY.toString())
 							|| (this.citadels.contains(state.getBox(x, j))
 									&& this.citadels.contains(state.getBox(x, y))))
@@ -1106,7 +1104,7 @@ public class GameAshtonTablut implements Game {
 						}
 
 					} else {
-						blocked = true;
+						break;
 					}
 					// se la cella figura nell'array delle celle vuote -> sali ancora
 					// else -> finisci e passa alla possa
@@ -1114,8 +1112,15 @@ public class GameAshtonTablut implements Game {
 
 			}
 		}
+		
+		/*
+		System.out.println(state);
 		for (Action a : result)
 			System.out.println(a.toString());
+		System.out.println("\n");
+		*/
+		
+		
 		return result;
 	}
 
@@ -1145,6 +1150,7 @@ public class GameAshtonTablut implements Game {
 		}
 
 		// if something has been captured, clear cache for draws
+		/*
 		if (this.movesWithutCapturing == 0) {
 			this.drawConditions.clear();
 			// this.loggGame.fine("Capture! Draw cache cleared!");
@@ -1190,6 +1196,8 @@ public class GameAshtonTablut implements Game {
 
 		// this.loggGame.fine("Stato:\n" + state.toString());
 		// System.out.println("Stato:\n" + state.toString());
+		///
+		*/
 
 		return result;
 
@@ -1219,30 +1227,42 @@ public class GameAshtonTablut implements Game {
 			
 			
 			// WHITE PLAYER
-			if (player.equals(State.Turn.WHITE)) {
-				result += (1 - (double)state.getNumberOf(State.Pawn.BLACK) / 16) * 0.2;
-				result -= (1 - (double)state.getNumberOf(State.Pawn.WHITE) / 8) * 0.2;
+			if ((player.equals(State.Turn.WHITE) && state.getTurn().equals(State.Turn.BLACK)) ||
+					(player.equals(State.Turn.BLACK) && state.getTurn().equals(State.Turn.BLACK))) {
+				result += (1 - (double)state.getNumberOf(State.Pawn.BLACK) / 16) * 0.3;
+				result -= (1 - (double)state.getNumberOf(State.Pawn.WHITE) / 8) * 0.5;
 				
 				result += getValueKing(state);
 				
 				//result += getValueWhitePawns(state);
 				//result -= getValueBlackPawn(state);
-			} 
+			} else if ((player.equals(State.Turn.WHITE) && state.getTurn().equals(State.Turn.WHITE)) || 
+					(player.equals(State.Turn.BLACK) && state.getTurn().equals(State.Turn.WHITE))) {
+				result -= (1 - (double)state.getNumberOf(State.Pawn.BLACK) / 16) * 0.3;
+				result += (1 - (double)state.getNumberOf(State.Pawn.WHITE) / 8) * 0.5;
+				
+				//result -= getValueKing(state);
+				
+				//result += getValueWhitePawns(state);
+				//result -= getValueBlackPawn(state);
+			}
 			
 			// BLACK PLAYER
-			else if (player.equals(State.Turn.BLACK)) {
-				result -= (1 - state.getNumberOf(State.Pawn.BLACK) / 16) * 0.2;
-				result += (1 - state.getNumberOf(State.Pawn.WHITE) / 8) * 0.2;
+			//else if (player.equals(State.Turn.BLACK)) {
+			//	result -= (1 - (double)state.getNumberOf(State.Pawn.BLACK) / 16) * 0.3;
+			//	result += (1 - (double)state.getNumberOf(State.Pawn.WHITE) / 8) * 0.5;
+				
+				//result -= getValueKing(state);
 				
 				// add heuristic to compute capturing KING
 					// ...
-			}
+			//}
 			
 			
 		}
 		
 		
-		System.out.println("The result is " + result);
+		//System.out.println("The result is " + result);
 		return result;
 	}
 	

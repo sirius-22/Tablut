@@ -2,6 +2,9 @@ package it.unibo.ai.didattica.competition.tablut.client;
 
 import java.io.IOException;
 import java.net.UnknownHostException;
+import java.security.NoSuchAlgorithmException;
+import java.security.SecureRandom;
+import java.util.Random;
 
 import aima.core.search.adversarial.IterativeDeepeningAlphaBetaSearch;
 import it.unibo.ai.didattica.competition.tablut.domain.Action;
@@ -25,11 +28,15 @@ public class EnricoClient extends TablutClient {
 	private int game;
 	private int timeout;
 
+	private long[] zobrist;
+
 	public EnricoClient(String player, String name, int gameChosen, int timeout, String ipAddress)
 			throws UnknownHostException, IOException {
 		super(player, name, timeout, ipAddress);
-		game = gameChosen;
+		this.game = gameChosen;
 		this.timeout = timeout;
+
+		this.zobrist = new long[243];
 	}
 
 	public EnricoClient(String player, String name, int timeout, String ipAddress)
@@ -42,18 +49,19 @@ public class EnricoClient extends TablutClient {
 	}
 
 	public EnricoClient(String player) throws UnknownHostException, IOException {
-		this(player, "random", 4, 30, "localhost");
+		this(player, "random", 4, 60, "localhost");
 	}
 
 	public static void main(String[] args) throws UnknownHostException, IOException, ClassNotFoundException {
 		int gametype = 4;
 		String role = "";
-		String name = "random";
+		String name = "SAME";
 		String ipAddress = "localhost";
-		int timeout = 30;
-		// TODO: change the behavior?
+		int timeout = 50;
+
 		if (args.length < 1) {
 			System.out.println("You must specify which player you are (WHITE or BLACK)");
+			System.out.println("USAGE: ./runmyplayer <black|white> <timeout-in-seconds> <server-ip>");
 			System.exit(-1);
 		} else {
 			System.out.println(args[0]);
@@ -61,9 +69,22 @@ public class EnricoClient extends TablutClient {
 		}
 		if (args.length == 2) {
 			System.out.println(args[1]);
-			timeout = Integer.parseInt(args[1]);
+			try {
+				timeout = Integer.parseInt(args[1]);
+			} catch (NumberFormatException e) {
+				System.out.println("Timeout must be an integer representing seconds");
+				System.out.println("USAGE: ./runmyplayer <black|white> <timeout-in-seconds> <server-ip> <debug>");
+				System.exit(-1);
+			}
 		}
 		if (args.length == 3) {
+			try {
+				timeout = Integer.parseInt(args[1]);
+			} catch (NumberFormatException e) {
+				System.out.println("Timeout must be an integer representing seconds");
+				System.out.println("USAGE: ./runmyplayer <black|white> <timeout-in-seconds> <server-ip> <debug>");
+				System.exit(-1);
+			}
 			ipAddress = args[2];
 		}
 		System.out.println("Selected client: " + args[0]);
@@ -108,13 +129,26 @@ public class EnricoClient extends TablutClient {
 			System.exit(4);
 		}
 
+		// attributes depends to parameters passed to main
+		System.out.println("Player: " + (this.getPlayer().equals(State.Turn.BLACK) ? "BLACK" : "WHITE"));
+		System.out.println("Timeout: " + this.timeout + " s");
+		System.out.println("Server: " + this.serverIp);
+
 		System.out.println("You are player " + this.getPlayer().toString() + "!");
 
+		// INIT ZOBRIST
+		this.initZobrist();
+
 		// create iterative deepening slave
-		MyIterativeDeepeningAlphaBetaSearch oracoloEnrico = new MyIterativeDeepeningAlphaBetaSearch(rules, -1, 1, this.timeout);
+		//MyIterativeDeepeningAlphaBetaSearch<State, Action, State.Turn> oracoloEnrico = 
+		//		new MyIterativeDeepeningAlphaBetaSearch<State, Action, State.Turn>(rules, -1, 1, this.timeout, this.zobrist);
+		
+		MyIterativeDeepeningAlphaBetaSearch oracoloEnrico = 
+						new MyIterativeDeepeningAlphaBetaSearch(rules, -1, 1, this.timeout, this.zobrist);
 
 		// init gaming sequence
 		while (true) {
+
 			try {
 				this.read();
 			} catch (ClassNotFoundException | IOException e1) {
@@ -122,9 +156,11 @@ public class EnricoClient extends TablutClient {
 				e1.printStackTrace();
 				System.exit(1);
 			}
+
 			System.out.println("Current state:");
 			state = this.getCurrentState();
 			System.out.println(state.toString());
+
 			try {
 				Thread.sleep(1000);
 			} catch (InterruptedException e) {
@@ -186,6 +222,21 @@ public class EnricoClient extends TablutClient {
 					System.exit(0);
 				}
 
+			}
+		}
+
+	}
+
+	private void initZobrist() {
+		// 3 pieces * 81 board positions
+		int i, j;
+		Random rand = new Random();
+
+		for (i = 0; i < 9; i++) {
+			for (j = 0; j < 9; j++) {
+				this.zobrist[(j + i * 9) * 3] = Math.abs(rand.nextLong());
+				this.zobrist[(j + i * 9) * 3 + 1] = Math.abs(rand.nextLong());
+				this.zobrist[(j + i * 9) * 3 + 2] = Math.abs(rand.nextLong());
 			}
 		}
 
