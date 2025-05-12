@@ -7,6 +7,7 @@ import aima.core.search.adversarial.AdversarialSearch;
 import aima.core.search.adversarial.Game;
 import aima.core.search.adversarial.IterativeDeepeningAlphaBetaSearch;
 import aima.core.search.framework.Metrics;
+import it.unibo.ai.didattica.competition.tablut.PytorchIntegration.ModelEvaluator;
 import it.unibo.ai.didattica.competition.tablut.domain.Action;
 import it.unibo.ai.didattica.competition.tablut.domain.State;
 import it.unibo.ai.didattica.competition.tablut.domain.TranspositionTableEntry;
@@ -50,6 +51,10 @@ public class MyIterativeDeepeningAlphaBetaSearch implements AdversarialSearch<St
 	private long[] zobrist;
 	private TranspositionTableEntry[] transpositionTable;
 
+	private ModelEvaluator evaluator;
+	String dirPath = "src/it/unibo/ai/didattica/competition/tablut/PytorchIntegration/models";
+	String fileName = "global_epoch5000_cnn.pt";
+
 	private Metrics metrics = new Metrics();
 
 	/**
@@ -89,7 +94,8 @@ public class MyIterativeDeepeningAlphaBetaSearch implements AdversarialSearch<St
 		this.timer = new Timer(time);
 
 		this.zobrist = zobrist;
-		//this.transpositionTable = new TranspositionTableEntry[MAX_TRANSPOSITION_SIZE];
+		// this.transpositionTable = new
+		// TranspositionTableEntry[MAX_TRANSPOSITION_SIZE];
 	}
 
 	public void setLogEnabled(boolean b) {
@@ -103,9 +109,17 @@ public class MyIterativeDeepeningAlphaBetaSearch implements AdversarialSearch<St
 	 * depth-limited search runs.
 	 */
 	@Override
-	public Action makeDecision(State state) {	
+	public Action makeDecision(State state) {
 		metrics = new Metrics();
 		this.transpositionTable = new TranspositionTableEntry[MAX_TRANSPOSITION_SIZE];
+
+		try {
+			this.evaluator = new ModelEvaluator(dirPath + "/" + fileName);
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+
 		// StringBuffer logText = null;
 		State.Turn player = game.getPlayer(state);
 		// List<A> results = orderActions(state, game.getActions(state), player, 0);
@@ -131,20 +145,22 @@ public class MyIterativeDeepeningAlphaBetaSearch implements AdversarialSearch<St
 			// System.out.println(logText);
 			if (newResults.size() > 0) {
 				results = newResults.actions;
-				
+
 				if (!timer.timeOutOccurred()) {
 					if (hasSafeWinner(newResults.utilValues.get(0)))
 						break; // exit from iterative deepening loop
-					//else if (newResults.size() > 1
-					//		&& isSignificantlyBetter(newResults.utilValues.get(0), newResults.utilValues.get(1)))
-					//	break; // exit from iterative deepening loop
+					// else if (newResults.size() > 1
+					// && isSignificantlyBetter(newResults.utilValues.get(0),
+					// newResults.utilValues.get(1)))
+					// break; // exit from iterative deepening loop
 				}
-				
+
 			}
 		} while (!timer.timeOutOccurred() && heuristicEvaluationUsed);
 
 		System.out.println("Explored a total of " + getMetrics().get(METRICS_NODES_EXPANDED)
 				+ " nodes, reaching a depth limit of " + getMetrics().get(METRICS_MAX_DEPTH));
+		this.evaluator.close();
 		return results.get(0);
 	}
 
@@ -153,35 +169,29 @@ public class MyIterativeDeepeningAlphaBetaSearch implements AdversarialSearch<St
 		updateMetrics(depth);
 
 		if (game.isTerminal(state) || depth >= currDepthLimit || timer.timeOutOccurred()) {
-			
-			long zobrist = hashState(state);
-			double value;
-			int hashIndex = (int) (zobrist % MAX_TRANSPOSITION_SIZE);
-			TranspositionTableEntry entry = transpositionTable[hashIndex];
-
-			// if (checkTranspositionTable(zobrist))
-
-			if (entry == null) {
-				value = eval(state, player);
-				transpositionTable[hashIndex] = new TranspositionTableEntry(zobrist, depth, value, state.getTurn());
-				return value;
-			} else if (entry.getZobrist() == zobrist && entry.getDepth() >= depth) {
-				return state.getTurn().equals(entry.getPlayer()) ? entry.getEval() : -entry.getEval();
-			} else if (entry.getZobrist() == zobrist && entry.getDepth() < depth) {
-				value = eval(state, player);
-				transpositionTable[hashIndex] = new TranspositionTableEntry(zobrist, depth, value, state.getTurn());
-				return value;
-			} else if (entry.getZobrist() != zobrist && entry.getDepth() < depth) {
-				value = eval(state, player);
-				transpositionTable[hashIndex] = new TranspositionTableEntry(zobrist, depth, value, state.getTurn());
-				return value;
-			} else if (entry.getZobrist() != zobrist && entry.getDepth() >= depth) {
-				return eval(state, player);
-			} else {
-				return eval(state, player);
-			}
-			
-			//return eval(state, player);
+			/*
+			 * long zobrist = hashState(state); double value; int hashIndex = (int) (zobrist
+			 * % MAX_TRANSPOSITION_SIZE); TranspositionTableEntry entry =
+			 * transpositionTable[hashIndex];
+			 * 
+			 * // if (checkTranspositionTable(zobrist))
+			 * 
+			 * if (entry == null) { value = eval(state, player);
+			 * transpositionTable[hashIndex] = new TranspositionTableEntry(zobrist, depth,
+			 * value, state.getTurn()); return value; } else if (entry.getZobrist() ==
+			 * zobrist && entry.getDepth() >= depth) { return
+			 * state.getTurn().equals(entry.getPlayer()) ? entry.getEval() :
+			 * -entry.getEval(); } else if (entry.getZobrist() == zobrist &&
+			 * entry.getDepth() < depth) { value = eval(state, player);
+			 * transpositionTable[hashIndex] = new TranspositionTableEntry(zobrist, depth,
+			 * value, state.getTurn()); return value; } else if (entry.getZobrist() !=
+			 * zobrist && entry.getDepth() < depth) { value = eval(state, player);
+			 * transpositionTable[hashIndex] = new TranspositionTableEntry(zobrist, depth,
+			 * value, state.getTurn()); return value; } else if (entry.getZobrist() !=
+			 * zobrist && entry.getDepth() >= depth) { return eval(state, player); } else {
+			 * return eval(state, player); }
+			 */
+			return eval(state, player);
 		} else {
 			double value = Double.NEGATIVE_INFINITY;
 			// for (A action : orderActions(state, game.getActions(state), player, depth)) {
@@ -201,38 +211,32 @@ public class MyIterativeDeepeningAlphaBetaSearch implements AdversarialSearch<St
 		updateMetrics(depth);
 
 		if (game.isTerminal(state) || depth >= currDepthLimit || timer.timeOutOccurred()) {
-			
-			long zobrist = hashState(state);
-			//System.out.println("zobrist is " + zobrist);
-			double value;
-			int hashIndex = (int) (zobrist % MAX_TRANSPOSITION_SIZE);
-			TranspositionTableEntry entry = transpositionTable[hashIndex];
-
-			// if (checkTranspositionTable(zobrist))
-
-			if (entry == null) {
-				value = eval(state, player);
-				transpositionTable[hashIndex] = new TranspositionTableEntry(zobrist, depth, value, state.getTurn());
-				return value;
-			} else if (entry.getZobrist() == zobrist && entry.getDepth() >= depth) {
-				//System.out.println("something worked " + zobrist);
-				//System.out.println("state curr:" + state + "\nstate entry: " + entry.getState());
-				return state.getTurn().equals(entry.getPlayer()) ? entry.getEval() : -entry.getEval();
-			} else if (entry.getZobrist() == zobrist && entry.getDepth() < depth) {
-				value = eval(state, player);
-				transpositionTable[hashIndex] = new TranspositionTableEntry(zobrist, depth, value, state.getTurn());
-				return value;
-			} else if (entry.getZobrist() != zobrist && entry.getDepth() < depth) {
-				value = eval(state, player);
-				transpositionTable[hashIndex] = new TranspositionTableEntry(zobrist, depth, value, state.getTurn());
-				return value;
-			} else if (entry.getZobrist() != zobrist && entry.getDepth() >= depth) {
-				return eval(state, player);
-			} else {
-				return eval(state, player);
-			}
-			
-			//return eval(state, player);
+			/*
+			 * long zobrist = hashState(state); //System.out.println("zobrist is " +
+			 * zobrist); double value; int hashIndex = (int) (zobrist %
+			 * MAX_TRANSPOSITION_SIZE); TranspositionTableEntry entry =
+			 * transpositionTable[hashIndex];
+			 * 
+			 * // if (checkTranspositionTable(zobrist))
+			 * 
+			 * if (entry == null) { value = eval(state, player);
+			 * transpositionTable[hashIndex] = new TranspositionTableEntry(zobrist, depth,
+			 * value, state.getTurn()); return value; } else if (entry.getZobrist() ==
+			 * zobrist && entry.getDepth() >= depth) {
+			 * //System.out.println("something worked " + zobrist);
+			 * //System.out.println("state curr:" + state + "\nstate entry: " +
+			 * entry.getState()); return state.getTurn().equals(entry.getPlayer()) ?
+			 * entry.getEval() : -entry.getEval(); } else if (entry.getZobrist() == zobrist
+			 * && entry.getDepth() < depth) { value = eval(state, player);
+			 * transpositionTable[hashIndex] = new TranspositionTableEntry(zobrist, depth,
+			 * value, state.getTurn()); return value; } else if (entry.getZobrist() !=
+			 * zobrist && entry.getDepth() < depth) { value = eval(state, player);
+			 * transpositionTable[hashIndex] = new TranspositionTableEntry(zobrist, depth,
+			 * value, state.getTurn()); return value; } else if (entry.getZobrist() !=
+			 * zobrist && entry.getDepth() >= depth) { return eval(state, player); } else {
+			 * return eval(state, player); }
+			 */
+			return eval(state, player);
 		} else {
 			double value = Double.POSITIVE_INFINITY;
 			// for (A action : orderActions(state, game.getActions(state), player, depth)) {
@@ -252,31 +256,18 @@ public class MyIterativeDeepeningAlphaBetaSearch implements AdversarialSearch<St
 		metrics.set(METRICS_MAX_DEPTH, Math.max(metrics.getInt(METRICS_MAX_DEPTH), depth));
 	}
 
-	private long hashState(State state) {
-		int i, j;
-		long hash = 0;
-
-		for (i = 0; i < 9; i++) {
-			for (j = 0; j < 9; j++) {
-				State.Pawn pawn = state.getPawn(i, j);
-				if (!pawn.equals(State.Pawn.EMPTY) || !pawn.equals(State.Pawn.THRONE)) {
-					switch (pawn) {
-					case State.Pawn.WHITE:
-						hash = hash ^ this.zobrist[(j + i * 9) * 3];
-					case State.Pawn.BLACK:
-						hash = hash ^ this.zobrist[(j + i * 9) * 3 + 1];
-					case State.Pawn.KING:
-						hash = hash ^ this.zobrist[(j + i * 9) * 3 + 2];
-					default:
-						break;
-					}
-				}
-			}
-		}
-
-		return hash;
-	}
-
+	/*
+	 * private long hashState(State state) { int i, j; long hash = 0;
+	 * 
+	 * for (i = 0; i < 9; i++) { for (j = 0; j < 9; j++) { State.Pawn pawn =
+	 * state.getPawn(i, j); if (!pawn.equals(State.Pawn.EMPTY) ||
+	 * !pawn.equals(State.Pawn.THRONE)) { switch (pawn) { case State.Pawn.WHITE:
+	 * hash = hash ^ this.zobrist[(j + i * 9) * 3]; case State.Pawn.BLACK: hash =
+	 * hash ^ this.zobrist[(j + i * 9) * 3 + 1]; case State.Pawn.KING: hash = hash ^
+	 * this.zobrist[(j + i * 9) * 3 + 2]; default: break; } } } }
+	 * 
+	 * return hash; }
+	 */
 	/**
 	 * Returns some statistic data from the last search.
 	 */
@@ -321,23 +312,30 @@ public class MyIterativeDeepeningAlphaBetaSearch implements AdversarialSearch<St
 	protected double eval(State state, State.Turn player) {
 		// ENRICO's HEURISTICS -> DON'T MODIFY
 		if (game.isTerminal(state)) {
-			return game.getUtility(state, player);
+			// return game.getUtility(state, player);
 		} else {
 			heuristicEvaluationUsed = true;
-			return game.getUtility(state, player);
+			// return game.getUtility(state, player);
 		}
-		
 
 		// YOU CAN MODIFY THIS **** BELOW
-		// super.eval(state, player);
 
-		//float[] encodedState = MyIterativeDeepeningAlphaBetaSearch.encodeState(state);
-		// ModelEvaluator evaluator = new ModelEvaluator("models/deep_cnn_scripted.pt");
-		// float score = evaluator.evaluate(state);
-		// System.out.println("Valutazione stato: " + score);
+		float score = 0f;
+		float[] encodedState = MyIterativeDeepeningAlphaBetaSearch.encodeState(state);
 
-		// evaluator.close();
+		try {
+			score = this.evaluator.evaluate(encodedState);
+			// evaluator.close();
+			// System.out.println("Valutazione stato: " + score);
 
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		// CLASSIC HEURISTIC
+		// return super.game.getUtility(state, player);
+
+		return score;
 	}
 
 	/**
@@ -392,13 +390,12 @@ public class MyIterativeDeepeningAlphaBetaSearch implements AdversarialSearch<St
 	 * INTEGRATION WITH PYTORCH
 	 */
 
-	 public static float[] encodeState(State state) {
+	public static float[] encodeState(State state) {
 		State.Pawn[][] board = state.getBoard();
 
-		
-		//"V*X*Y" V is the array of possible values in a cell (B, W, T, ...) X and Y
-		//are the dimensions of the board
-		
+		// "V*X*Y" V is the array of possible values in a cell (B, W, T, ...) X and Y
+		// are the dimensions of the board
+
 		float[] input = new float[4 * 9 * 9];
 
 		for (int y = 0; y < 9; y++) {

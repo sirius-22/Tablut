@@ -14,6 +14,12 @@
                 <pathelement path="lib/gson-2.2.2.jar" />
                 <pathelement path="lib/commons-cli-1.4.jar" />
             	<pathelement path="lib/myAima.jar" />
+                <pathelement path="lib/djl.ai.jar" />
+            	<pathelement path="lib/slf4j-api-2.0.17.jar" />
+            	<pathelement path="lib/slf4j-simple-2.0.17.jar" />
+            	<pathelement path="lib/pytorch-engine-0.32.0.jar"/>
+
+
             </classpath>
         </javac>
         <copy todir="build">
@@ -111,6 +117,11 @@
 	                <pathelement location="lib/gson-2.2.2.jar"/>
 	            	<pathelement location="lib/myAima.jar" />
 	                <pathelement location="build"/>
+	                <pathelement location="lib/djl.ai.jar" />
+	            	<pathelement location="lib/slf4j-api-2.0.17.jar" />
+	            	<pathelement location="lib/slf4j-simple-2.0.17.jar" />
+	            	<pathelement location="lib/pytorch-engine-0.32.0.jar"/>
+
 	            </classpath>
 	        </java>
 	    </target>
@@ -121,6 +132,11 @@
 		                <pathelement location="lib/gson-2.2.2.jar"/>
 		            	<pathelement location="lib/myAima.jar" />
 		                <pathelement location="build"/>
+		                <pathelement location="lib/djl.ai.jar" />
+		            	<pathelement location="lib/slf4j-api-2.0.17.jar" />
+		            	<pathelement location="lib/slf4j-simple-2.0.17.jar" />
+		            	<pathelement location="lib/pytorch-engine-0.32.0.jar"/>
+
 		            </classpath>
 		        </java>
 		    </target>

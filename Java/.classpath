@@ -11,5 +11,9 @@
 	<classpathentry kind="lib" path="lib/commons-cli-1.4.jar"/>
 	<classpathentry kind="lib" path="lib/gson-2.2.2.jar"/>
 	<classpathentry kind="lib" path="lib/myAima.jar"/>
+	<classpathentry kind="lib" path="lib/djl.ai.jar"/>
+	<classpathentry kind="lib" path="lib/pytorch-engine-0.32.0.jar"/>
+	<classpathentry kind="lib" path="lib/slf4j-api-2.0.17.jar"/>
+	<classpathentry kind="lib" path="lib/slf4j-simple-2.0.17.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
