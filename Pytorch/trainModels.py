@@ -17,6 +17,7 @@ BATCH_SIZE = 32
 NUM_EPOCHS = 5
 LEARNING_RATE = 1e-3
 MODEL_NAME = "deep"  # Cambia a "simple", "deep", "global" per provare modelli diversi
+finalDevice = "cpu"
 
 #percorso salvataggio dati
 OUTPUT_DATA_PATH = "/kaggle/working/processed_data/states_dataset.pkl"
@@ -112,5 +113,6 @@ print(f"Modello '{MODEL_NAME}' salvato in: {MODEL_SAVE_PATH}")
 # salvataggio in formato torchscript
 SCRIPTED_PATH = f"{OUTPUT_MODELS_PATH}/{MODEL_NAME}_epoch{NUM_EPOCHS}_cnn_scripted.pt"
 scripted_model = torch.jit.script(model)
+scripted_model = scripted_model.to(finalDevice)
 scripted_model.save(SCRIPTED_PATH)
 print(f"Modello salvato in TorchScript a: {SCRIPTED_PATH}")
