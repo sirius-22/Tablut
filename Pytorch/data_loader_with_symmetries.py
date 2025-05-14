@@ -24,7 +24,7 @@ def augment_symmetries(tensor):
     return augmented
 
 # Propagazione del reward a ritroso (decadimento gamma)
-def generate_discounted_labels(num_moves, winner, gamma=0.99):
+def generate_discounted_labels(num_moves, winner, gamma=0.70):
     reward = 1.0 if winner == 'W' else -1.0
     return [reward * (gamma ** (num_moves - 1 - i)) for i in range(num_moves)]
 
