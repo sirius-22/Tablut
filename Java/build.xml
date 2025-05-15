@@ -128,7 +128,8 @@
 	
 	<target name="enricowhite">
 		        <java classname="it.unibo.ai.didattica.competition.tablut.client.EnricoClientWhite" fork="true">
-		            <classpath>
+		            <env key="PYTORCH_JIT" value="0"/>
+		        	<classpath>
 		                <pathelement location="lib/gson-2.2.2.jar"/>
 		            	<pathelement location="lib/myAima.jar" />
 		                <pathelement location="build"/>

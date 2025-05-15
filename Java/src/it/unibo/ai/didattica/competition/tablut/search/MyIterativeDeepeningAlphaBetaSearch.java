@@ -2,6 +2,7 @@ package it.unibo.ai.didattica.competition.tablut.search;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.Callable;
 
 import aima.core.search.adversarial.AdversarialSearch;
 import aima.core.search.adversarial.Game;
@@ -33,7 +34,7 @@ public class MyIterativeDeepeningAlphaBetaSearch extends IterativeDeepeningAlpha
 }
 */
 
-public class MyIterativeDeepeningAlphaBetaSearch implements AdversarialSearch<State, Action> {
+public class MyIterativeDeepeningAlphaBetaSearch implements AdversarialSearch<State, Action>, Callable<Action> {
 
 	public final static String METRICS_NODES_EXPANDED = "nodesExpanded";
 	public final static String METRICS_MAX_DEPTH = "maxDepth";
@@ -52,10 +53,11 @@ public class MyIterativeDeepeningAlphaBetaSearch implements AdversarialSearch<St
 	private TranspositionTableEntry[] transpositionTable;
 
 	private ModelEvaluator evaluator;
-	String dirPath = "src/it/unibo/ai/didattica/competition/tablut/PytorchIntegration/models";
-	String fileName = "global_epoch5000_cnn.pt";
 
 	private Metrics metrics = new Metrics();
+
+	private State state;
+	public List<Action> results;
 
 	/**
 	 * Creates a new search object for a given game.
@@ -87,7 +89,7 @@ public class MyIterativeDeepeningAlphaBetaSearch implements AdversarialSearch<St
 	 * @param time    Maximal computation time in seconds.
 	 */
 	public MyIterativeDeepeningAlphaBetaSearch(Game<State, Action, State.Turn> game, double utilMin, double utilMax,
-			int time, long[] zobrist) {
+			int time, long[] zobrist, ModelEvaluator evaluator) {
 		this.game = game;
 		this.utilMin = utilMin;
 		this.utilMax = utilMax;
@@ -96,6 +98,8 @@ public class MyIterativeDeepeningAlphaBetaSearch implements AdversarialSearch<St
 		this.zobrist = zobrist;
 		// this.transpositionTable = new
 		// TranspositionTableEntry[MAX_TRANSPOSITION_SIZE];
+
+		this.evaluator = evaluator;
 	}
 
 	public void setLogEnabled(boolean b) {
@@ -113,17 +117,11 @@ public class MyIterativeDeepeningAlphaBetaSearch implements AdversarialSearch<St
 		metrics = new Metrics();
 		this.transpositionTable = new TranspositionTableEntry[MAX_TRANSPOSITION_SIZE];
 
-		try {
-			this.evaluator = new ModelEvaluator(dirPath + "/" + fileName);
-		} catch (Exception e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-
 		// StringBuffer logText = null;
 		State.Turn player = game.getPlayer(state);
 		// List<A> results = orderActions(state, game.getActions(state), player, 0);
-		List<Action> results = game.getActions(state);
+		// List<Action> results = game.getActions(state);
+		results = game.getActions(state);
 		timer.start();
 		currDepthLimit = 0;
 		do {
@@ -160,7 +158,10 @@ public class MyIterativeDeepeningAlphaBetaSearch implements AdversarialSearch<St
 
 		System.out.println("Explored a total of " + getMetrics().get(METRICS_NODES_EXPANDED)
 				+ " nodes, reaching a depth limit of " + getMetrics().get(METRICS_MAX_DEPTH));
-		this.evaluator.close();
+		// this.evaluator.close();
+
+		System.out.println("Player: " + player + "- selected move is: " + results.get(0));
+
 		return results.get(0);
 	}
 
@@ -171,7 +172,6 @@ public class MyIterativeDeepeningAlphaBetaSearch implements AdversarialSearch<St
 		if (game.isTerminal(state) || depth >= currDepthLimit || timer.timeOutOccurred()) {
 
 			long zobrist = hashState(state);
-			// System.out.println("zobrist is " + zobrist);
 			double value;
 			int hashIndex = (int) (zobrist % MAX_TRANSPOSITION_SIZE);
 			TranspositionTableEntry entry = transpositionTable[hashIndex];
@@ -183,9 +183,6 @@ public class MyIterativeDeepeningAlphaBetaSearch implements AdversarialSearch<St
 				transpositionTable[hashIndex] = new TranspositionTableEntry(zobrist, depth, value, state.getTurn());
 				return value;
 			} else if (entry.getZobrist() == zobrist && entry.getDepth() >= depth) {
-				// System.out.println("something worked " + zobrist);
-				// System.out.println("state curr:" + state + "\nstate entry: " +
-				// entry.getState());
 				return state.getTurn().equals(entry.getPlayer()) ? entry.getEval() : -entry.getEval();
 			} else if (entry.getZobrist() == zobrist && entry.getDepth() < depth) {
 				value = eval(state, player);
@@ -221,9 +218,7 @@ public class MyIterativeDeepeningAlphaBetaSearch implements AdversarialSearch<St
 		updateMetrics(depth);
 
 		if (game.isTerminal(state) || depth >= currDepthLimit || timer.timeOutOccurred()) {
-
 			long zobrist = hashState(state);
-			// System.out.println("zobrist is " + zobrist);
 			double value;
 			int hashIndex = (int) (zobrist % MAX_TRANSPOSITION_SIZE);
 			TranspositionTableEntry entry = transpositionTable[hashIndex];
@@ -235,9 +230,6 @@ public class MyIterativeDeepeningAlphaBetaSearch implements AdversarialSearch<St
 				transpositionTable[hashIndex] = new TranspositionTableEntry(zobrist, depth, value, state.getTurn());
 				return value;
 			} else if (entry.getZobrist() == zobrist && entry.getDepth() >= depth) {
-				// System.out.println("something worked " + zobrist);
-				// System.out.println("state curr:" + state + "\nstate entry: " +
-				// entry.getState());
 				return state.getTurn().equals(entry.getPlayer()) ? entry.getEval() : -entry.getEval();
 			} else if (entry.getZobrist() == zobrist && entry.getDepth() < depth) {
 				value = eval(state, player);
@@ -282,12 +274,15 @@ public class MyIterativeDeepeningAlphaBetaSearch implements AdversarialSearch<St
 				State.Pawn pawn = state.getPawn(i, j);
 				if (!pawn.equals(State.Pawn.EMPTY) || !pawn.equals(State.Pawn.THRONE)) {
 					switch (pawn) {
-					case State.Pawn.WHITE:
+					case WHITE:
 						hash = hash ^ this.zobrist[(j + i * 9) * 3];
-					case State.Pawn.BLACK:
+						break;
+					case BLACK:
 						hash = hash ^ this.zobrist[(j + i * 9) * 3 + 1];
-					case State.Pawn.KING:
+						break;
+					case KING:
 						hash = hash ^ this.zobrist[(j + i * 9) * 3 + 2];
+						break;
 					default:
 						break;
 					}
@@ -340,34 +335,29 @@ public class MyIterativeDeepeningAlphaBetaSearch implements AdversarialSearch<St
 	 * overriding, first call the super implementation!
 	 */
 	protected double eval(State state, State.Turn player) {
+
 		if (game.isTerminal(state)) {
 			// return game.getUtility(state, player);
 		} else {
 			heuristicEvaluationUsed = true;
 			// return game.getUtility(state, player);
 		}
-		
-		// ENRICO's HEURISTICS -> DON'T MODIFY
-		if (player.equals(State.Turn.WHITE)) {
-			//if (game.isTerminal(state)) {
-				// return game.getUtility(state, player);
-			//} else {
-			//	heuristicEvaluationUsed = true;
-				// return game.getUtility(state, player);
-			//}
-			return game.getUtility(state, player);
 
-		
-		// YOU CAN MODIFY THIS **** BELOW
+		if (player.equals(State.Turn.BLACK)) {
+			return game.getUtility(state, player);
 		} else {
-			
+
 			float score = 0f;
 			float[] encodedState = MyIterativeDeepeningAlphaBetaSearch.encodeState(state);
 
+			// ExecutorService executor = Executors.newSingleThreadExecutor();
+			// Future<Float> future = executor.submit(evaluator);
+
 			try {
 				score = this.evaluator.evaluate(encodedState);
+
 				// evaluator.close();
-				// System.out.println("Valutazione stato: " + score);
+				// System.out.println("Player " + player + "- Valutazione stato: " + score);
 
 			} catch (Exception e) {
 				// TODO Auto-generated catch block
@@ -376,7 +366,10 @@ public class MyIterativeDeepeningAlphaBetaSearch implements AdversarialSearch<St
 			// CLASSIC HEURISTIC
 			// return super.game.getUtility(state, player);
 
-			return score;
+			if (player.equals(State.Turn.BLACK))
+				return -score;
+			else
+				return score;
 		}
 	}
 
@@ -468,4 +461,14 @@ public class MyIterativeDeepeningAlphaBetaSearch implements AdversarialSearch<St
 
 		return input;
 	}
+
+	@Override
+	public Action call() throws Exception {
+		return this.makeDecision(this.state);
+	}
+
+	public void setState(State state) {
+		this.state = state;
+	}
+
 }

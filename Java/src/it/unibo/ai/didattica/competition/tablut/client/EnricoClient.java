@@ -2,11 +2,15 @@ package it.unibo.ai.didattica.competition.tablut.client;
 
 import java.io.IOException;
 import java.net.UnknownHostException;
-import java.security.NoSuchAlgorithmException;
-import java.security.SecureRandom;
 import java.util.Random;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
-import aima.core.search.adversarial.IterativeDeepeningAlphaBetaSearch;
+import it.unibo.ai.didattica.competition.tablut.PytorchIntegration.ModelEvaluator;
 import it.unibo.ai.didattica.competition.tablut.domain.Action;
 import it.unibo.ai.didattica.competition.tablut.domain.Game;
 import it.unibo.ai.didattica.competition.tablut.domain.GameAshtonTablut;
@@ -27,6 +31,7 @@ public class EnricoClient extends TablutClient {
 
 	private int game;
 	private int timeout;
+	private ModelEvaluator evaluator;
 
 	private long[] zobrist;
 
@@ -37,6 +42,12 @@ public class EnricoClient extends TablutClient {
 		this.timeout = timeout;
 
 		this.zobrist = new long[243];
+		try {
+			this.evaluator = new ModelEvaluator();
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 
 	public EnricoClient(String player, String name, int timeout, String ipAddress)
@@ -57,7 +68,7 @@ public class EnricoClient extends TablutClient {
 		String role = "";
 		String name = "SAME";
 		String ipAddress = "localhost";
-		int timeout = 50;
+		int timeout = 40;
 
 		if (args.length < 1) {
 			System.out.println("You must specify which player you are (WHITE or BLACK)");
@@ -140,11 +151,15 @@ public class EnricoClient extends TablutClient {
 		this.initZobrist();
 
 		// create iterative deepening slave
-		//MyIterativeDeepeningAlphaBetaSearch<State, Action, State.Turn> oracoloEnrico = 
-		//		new MyIterativeDeepeningAlphaBetaSearch<State, Action, State.Turn>(rules, -1, 1, this.timeout, this.zobrist);
-		
-		MyIterativeDeepeningAlphaBetaSearch oracoloEnrico = 
-						new MyIterativeDeepeningAlphaBetaSearch(rules, -1, 1, this.timeout, this.zobrist);
+		// MyIterativeDeepeningAlphaBetaSearch<State, Action, State.Turn> oracoloEnrico
+		// =
+		// new MyIterativeDeepeningAlphaBetaSearch<State, Action, State.Turn>(rules, -1,
+		// 1, this.timeout, this.zobrist);
+
+		MyIterativeDeepeningAlphaBetaSearch oracoloEnrico = new MyIterativeDeepeningAlphaBetaSearch(rules, -1, 1,
+				this.timeout, this.zobrist, this.evaluator);
+
+		Future<Action> future = null;
 
 		// init gaming sequence
 		while (true) {
@@ -166,18 +181,38 @@ public class EnricoClient extends TablutClient {
 			} catch (InterruptedException e) {
 			}
 
+			// Same for both white and black player
+			ExecutorService executor = Executors.newSingleThreadExecutor();
+			oracoloEnrico.setState(state);
+
 			if (this.getPlayer().equals(Turn.WHITE)) { // WHITE
 				if (state.getTurn().equals(StateTablut.Turn.WHITE)) {
 
 					// Mio turno
 					try {
-						Action a = oracoloEnrico.makeDecision(state);
-						this.write(a);
+						// Action a = oracoloEnrico.makeDecision(state);
 						// this.write(oracoloEnrico.makeDecision(state));
-					} catch (ClassNotFoundException | IOException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
+
+						future = executor.submit(oracoloEnrico);
+						Action a = future.get(timeout, TimeUnit.SECONDS);
+						try {
+							this.write(a);
+						} catch (ClassNotFoundException | IOException e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						}
+					} catch (InterruptedException | TimeoutException | ExecutionException e) {
+
+						future.cancel(true);
+						// Fallback to the best move found so far
+						try {
+							this.write(oracoloEnrico.results.get(0));
+						} catch (ClassNotFoundException | IOException e1) {
+							// TODO Auto-generated catch block
+							e1.printStackTrace();
+						}
 					}
+
 				} else if (state.getTurn().equals(StateTablut.Turn.BLACK)) {
 					// Turno dell'avversario
 					System.out.println("Waiting for your opponent move... ");
@@ -203,10 +238,27 @@ public class EnricoClient extends TablutClient {
 				// Mio turno
 				if (this.getCurrentState().getTurn().equals(StateTablut.Turn.BLACK)) {
 					try {
-						this.write(oracoloEnrico.makeDecision(state));
-					} catch (ClassNotFoundException | IOException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
+						// Action a = oracoloEnrico.makeDecision(state);
+						// this.write(oracoloEnrico.makeDecision(state));
+
+						future = executor.submit(oracoloEnrico);
+						Action a = future.get(timeout, TimeUnit.SECONDS);
+						try {
+							this.write(a);
+						} catch (ClassNotFoundException | IOException e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						}
+					} catch (InterruptedException | TimeoutException | ExecutionException e) {
+
+						future.cancel(true);
+						// Fallback to the best move found so far
+						try {
+							this.write(oracoloEnrico.results.get(0));
+						} catch (ClassNotFoundException | IOException e1) {
+							// TODO Auto-generated catch block
+							e1.printStackTrace();
+						}
 					}
 				} else if (state.getTurn().equals(StateTablut.Turn.WHITE)) {
 					// Turno dell'avversario
@@ -223,6 +275,7 @@ public class EnricoClient extends TablutClient {
 				}
 
 			}
+			executor.shutdown();
 		}
 
 	}

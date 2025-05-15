@@ -9,16 +9,32 @@ import java.net.Socket;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Date;
-import java.util.logging.*;
+import java.util.logging.FileHandler;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import java.util.logging.SimpleFormatter;
 
-import it.unibo.ai.didattica.competition.tablut.domain.*;
+import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.CommandLineParser;
+import org.apache.commons.cli.DefaultParser;
+import org.apache.commons.cli.HelpFormatter;
+import org.apache.commons.cli.Options;
+import org.apache.commons.cli.ParseException;
+
+import com.google.gson.Gson;
+
+import it.unibo.ai.didattica.competition.tablut.domain.Action;
+import it.unibo.ai.didattica.competition.tablut.domain.Game;
+import it.unibo.ai.didattica.competition.tablut.domain.GameAshtonTablut;
+import it.unibo.ai.didattica.competition.tablut.domain.GameModernTablut;
+import it.unibo.ai.didattica.competition.tablut.domain.GameTablut;
+import it.unibo.ai.didattica.competition.tablut.domain.State;
 import it.unibo.ai.didattica.competition.tablut.domain.State.Turn;
+import it.unibo.ai.didattica.competition.tablut.domain.StateBrandub;
+import it.unibo.ai.didattica.competition.tablut.domain.StateTablut;
 import it.unibo.ai.didattica.competition.tablut.gui.Gui;
 import it.unibo.ai.didattica.competition.tablut.util.Configuration;
 import it.unibo.ai.didattica.competition.tablut.util.StreamUtils;
-
-import com.google.gson.Gson;
-import org.apache.commons.cli.*;
 
 /**
  * this class represent the server of the match: 2 clients with TCP connection
@@ -28,7 +44,7 @@ import org.apache.commons.cli.*;
  *
  */
 public class Server implements Runnable {
-	
+
 	/**
 	 * Timeout for waiting for a client to connect
 	 */
@@ -111,10 +127,9 @@ public class Server implements Runnable {
 	/**
 	 * Server initialiazer.
 	 * 
-	 * @param args
-	 *            the time for the move, the size of the cache for monitoring
-	 *            draws, the number of errors allowed, the type of game, whether
-	 *            the GUI should be used or not
+	 * @param args the time for the move, the size of the cache for monitoring
+	 *             draws, the number of errors allowed, the type of game, whether
+	 *             the GUI should be used or not
 	 * 
 	 */
 	public static void main(String[] args) {
@@ -130,90 +145,93 @@ public class Server implements Runnable {
 
 		Options options = new Options();
 
-		options.addOption("t","time", true, "time must be an integer (number of seconds); default: 60");
-		options.addOption("c", "cache", true, "cache must be an integer, negative value means infinite; default: infinite");
+		options.addOption("t", "time", true, "time must be an integer (number of seconds); default: 60");
+		options.addOption("c", "cache", true,
+				"cache must be an integer, negative value means infinite; default: infinite");
 		options.addOption("e", "errors", true, "errors must be an integer >= 0; default: 0");
 		options.addOption("s", "repeatedState", true, "repeatedStates must be an integer >= 0; default: 0");
-		options.addOption("r","game rules", true, "game rules must be an integer; 1 for Tablut, 2 for Modern, 3 for Brandub, 4 for Ashton; default: 4");
-		options.addOption("g","enableGUI", false, "enableGUI if option is present");
-		options.addOption("R", "replay", true, "replay mode: specify txt file containing stdout from game and replay the moves");
+		options.addOption("r", "game rules", true,
+				"game rules must be an integer; 1 for Tablut, 2 for Modern, 3 for Brandub, 4 for Ashton; default: 4");
+		options.addOption("g", "enableGUI", false, "enableGUI if option is present");
+		options.addOption("R", "replay", true,
+				"replay mode: specify txt file containing stdout from game and replay the moves");
 
 		HelpFormatter formatter = new HelpFormatter();
 		formatter.printHelp("java Server", options);
 
-		try{
-			CommandLine cmd = parser.parse( options, args );
-			if (cmd.hasOption("t")){
+		try {
+			CommandLine cmd = parser.parse(options, args);
+			if (cmd.hasOption("t")) {
 				String timeInsert = cmd.getOptionValue("t");
-				try{
+				try {
 					time = Integer.parseInt(timeInsert);
-					if(time<1){
+					if (time < 1) {
 						System.out.println("Time format not allowed!");
 						formatter.printHelp("java Server", options);
 						System.exit(1);
 					}
-				}catch (NumberFormatException e){
+				} catch (NumberFormatException e) {
 					System.out.println("The time format is not correct!");
 					formatter.printHelp("java Server", options);
 					System.exit(1);
 				}
 			}
-			if (cmd.hasOption("c")){
+			if (cmd.hasOption("c")) {
 				String moveCacheInsert = cmd.getOptionValue("c");
-				try{
+				try {
 					moveCache = Integer.parseInt(moveCacheInsert);
-				}catch (NumberFormatException e){
+				} catch (NumberFormatException e) {
 					System.out.println("Number format is not correct!");
 					formatter.printHelp("java Server", options);
 					System.exit(1);
 				}
 			}
-			if (cmd.hasOption("e")){
-				try{
+			if (cmd.hasOption("e")) {
+				try {
 					errors = Integer.parseInt(cmd.getOptionValue("e"));
-				}catch (NumberFormatException e) {
+				} catch (NumberFormatException e) {
 					System.out.println("The error format is not correct!");
 					formatter.printHelp("java Server", options);
 					System.exit(1);
 				}
 			}
-			if (cmd.hasOption("s")){
-				try{
+			if (cmd.hasOption("s")) {
+				try {
 					repeated = Integer.parseInt(cmd.getOptionValue("s"));
-					if (repeated<0){
+					if (repeated < 0) {
 						System.out.println("he RepeatedStates value is not allowed!");
 						formatter.printHelp("java Server", options);
 						System.exit(1);
 					}
-				}catch (NumberFormatException e){
+				} catch (NumberFormatException e) {
 					System.out.println("The RepeatedStates format is not correct!");
 					formatter.printHelp("java Server", options);
 					System.exit(1);
 				}
 			}
 
-			if(cmd.hasOption("r")){
-				try{
+			if (cmd.hasOption("r")) {
+				try {
 					gameChosen = Integer.parseInt(cmd.getOptionValue("r"));
-					if (gameChosen < 0 || gameChosen > 4){
+					if (gameChosen < 0 || gameChosen > 4) {
 						System.out.println("Game format not allowed!");
 						formatter.printHelp("java Server", options);
 						System.exit(1);
 					}
-				}catch (NumberFormatException e){
+				} catch (NumberFormatException e) {
 					System.out.println("The game format is not correct!");
 					formatter.printHelp("java Server", options);
 					System.exit(1);
 				}
 			}
 
-			if(cmd.hasOption("g")){
-				enableGui=true;
-			}else{
-				enableGui=false;
+			if (cmd.hasOption("g")) {
+				enableGui = true;
+			} else {
+				enableGui = false;
 			}
 
-			if(cmd.hasOption("R")){
+			if (cmd.hasOption("R")) {
 				replayFilePath = cmd.getOptionValue("R");
 				if (!new File(replayFilePath).exists()) {
 					System.out.println("File '" + replayFilePath + "' doesn't exist!");
@@ -221,8 +239,8 @@ public class Server implements Runnable {
 				}
 			}
 
-		}catch (ParseException exp){
-			System.out.println( "Unexpected exception:" + exp.getMessage() );
+		} catch (ParseException exp) {
+			System.out.println("Unexpected exception:" + exp.getMessage());
 		}
 
 		// Start the server
@@ -236,8 +254,8 @@ public class Server implements Runnable {
 	}
 
 	/**
-	 * This class represents the stream who is waiting for the move from the
-	 * client (JSON format)
+	 * This class represents the stream who is waiting for the move from the client
+	 * (JSON format)
 	 * 
 	 * @author A.Piretti
 	 *
@@ -260,6 +278,7 @@ public class Server implements Runnable {
 
 	/**
 	 * This class represents the socket waiting for a connection
+	 * 
 	 * @author Andrea Galassi
 	 *
 	 */
@@ -284,9 +303,9 @@ public class Server implements Runnable {
 	}
 
 	/**
-	 * This method starts the proper game. It waits the connections from 2
-	 * clients, check the move and update the state. There is a timeout that
-	 * interrupts games that last too much
+	 * This method starts the proper game. It waits the connections from 2 clients,
+	 * check the move and update the state. There is a timeout that interrupts games
+	 * that last too much
 	 */
 	public void run() {
 		/**
@@ -377,7 +396,6 @@ public class Server implements Runnable {
 		try {
 			this.socketWhite = new ServerSocket(Configuration.whitePort);
 			this.socketBlack = new ServerSocket(Configuration.blackPort);
-			
 
 			// ESTABLISHING CONNECTION
 			tc = new TCPConnection(socketWhite);
@@ -399,7 +417,7 @@ public class Server implements Runnable {
 				loggSys.warning("Closing system for timeout!");
 				System.exit(0);
 			}
-			
+
 			white = tc.getSocket();
 			loggSys.fine("White player connected");
 			whiteMove = new DataInputStream(white.getInputStream());
@@ -438,7 +456,6 @@ public class Server implements Runnable {
 			System.out.println("White player name:\t" + whiteName);
 			loggSys.fine("White player name:\t" + whiteName);
 
-			
 			// ESTABLISHING CONNECTION
 			tc = new TCPConnection(socketBlack);
 			t = new Thread(tc);
@@ -649,7 +666,6 @@ public class Server implements Runnable {
 				System.exit(1);
 			}
 
-
 			switch (state.getTurn()) {
 			case WHITE:
 				tin = Turnwhite;
@@ -681,7 +697,7 @@ public class Server implements Runnable {
 			}
 
 		}
-		
+
 		System.exit(0);
 	}
 
