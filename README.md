@@ -3,10 +3,11 @@
 ⚫⚪⚫Progetto Tablut [Fondamenti di Intelligenza Artificiale](https://www.unibo.it/it/studiare/insegnamenti-competenze-trasversali-moocs/insegnamenti/insegnamento/2024/468002) a.a. 2024/2025 - Università di Bologna
 ⚪⚫⚪
 # Cose da fare e/o migliorare 📈:
-- euristica
-- possibile simmetria
-- bitmap per stato?
-- allenare modello
+- check timeout
+- simmetria?
+- case insensitive
+- mettere jar sopra macchina virtuale (alberto)
+- 
 
 # Deadlines 🕔:
 * Iscrizione - 20 aprile 2025 ✔️
