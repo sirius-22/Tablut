@@ -27,7 +27,7 @@ import it.unibo.ai.didattica.competition.tablut.search.MyIterativeDeepeningAlpha
  * @author A. Piretti, Andrea Galassi
  *
  */
-public class EnricoClient extends TablutClient {
+public class SAMEClient extends TablutClient {
 
 	private int game;
 	private int timeout;
@@ -35,7 +35,7 @@ public class EnricoClient extends TablutClient {
 
 	private long[] zobrist;
 
-	public EnricoClient(String player, String name, int gameChosen, int timeout, String ipAddress)
+	public SAMEClient(String player, String name, int gameChosen, int timeout, String ipAddress)
 			throws UnknownHostException, IOException {
 		super(player, name, timeout, ipAddress);
 		this.game = gameChosen;
@@ -50,16 +50,16 @@ public class EnricoClient extends TablutClient {
 		}
 	}
 
-	public EnricoClient(String player, String name, int timeout, String ipAddress)
+	public SAMEClient(String player, String name, int timeout, String ipAddress)
 			throws UnknownHostException, IOException {
 		this(player, name, 4, timeout, ipAddress);
 	}
 
-	public EnricoClient(String player, int timeout, String ipAddress) throws UnknownHostException, IOException {
+	public SAMEClient(String player, int timeout, String ipAddress) throws UnknownHostException, IOException {
 		this(player, "random", 4, timeout, ipAddress);
 	}
 
-	public EnricoClient(String player) throws UnknownHostException, IOException {
+	public SAMEClient(String player) throws UnknownHostException, IOException {
 		this(player, "random", 4, 60, "localhost");
 	}
 
@@ -74,7 +74,7 @@ public class EnricoClient extends TablutClient {
 			System.out.println("You must specify which player you are (WHITE or BLACK)");
 			System.out.println("USAGE: ./runmyplayer <black|white> <timeout-in-seconds> <server-ip>");
 			System.exit(-1);
-		} else {
+		} else { // DA FARE -> CASE INSENSITIVE
 			System.out.println(args[0]);
 			role = (args[0]);
 		}
@@ -100,7 +100,7 @@ public class EnricoClient extends TablutClient {
 		}
 		System.out.println("Selected client: " + args[0]);
 
-		EnricoClient client = new EnricoClient(role, name, gametype, timeout, ipAddress);
+		SAMEClient client = new SAMEClient(role, name, gametype, timeout, ipAddress);
 		client.run();
 	}
 

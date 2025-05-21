@@ -1270,6 +1270,7 @@ public class GameAshtonTablut implements Game {
 		return result;
 	}
 
+	// Returns a double, which is greater the closer the king is to the edge
 	private double getValueKing(State state) {
 		int minDistanceX = Math.min(kingX, state.getBoard().length - kingX);
 		int minDistanceY = Math.min(kingY, state.getBoard().length - kingY);

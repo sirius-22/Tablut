@@ -11,6 +11,7 @@ import aima.core.search.framework.Metrics;
 import it.unibo.ai.didattica.competition.tablut.PytorchIntegration.ModelEvaluator;
 import it.unibo.ai.didattica.competition.tablut.domain.Action;
 import it.unibo.ai.didattica.competition.tablut.domain.State;
+import it.unibo.ai.didattica.competition.tablut.domain.State.Turn;
 import it.unibo.ai.didattica.competition.tablut.domain.TranspositionTableEntry;
 
 /*
@@ -38,7 +39,7 @@ public class MyIterativeDeepeningAlphaBetaSearch implements AdversarialSearch<St
 
 	public final static String METRICS_NODES_EXPANDED = "nodesExpanded";
 	public final static String METRICS_MAX_DEPTH = "maxDepth";
-	public final static int MAX_TRANSPOSITION_SIZE = 1024;
+	public final static int MAX_TRANSPOSITION_SIZE = 2048;
 	public final static int ASSOCIATIVE_WAYS = 2;
 
 	protected Game<State, Action, State.Turn> game;
@@ -96,8 +97,7 @@ public class MyIterativeDeepeningAlphaBetaSearch implements AdversarialSearch<St
 		this.timer = new Timer(time);
 
 		this.zobrist = zobrist;
-		// this.transpositionTable = new
-		// TranspositionTableEntry[MAX_TRANSPOSITION_SIZE];
+		this.transpositionTable = new TranspositionTableEntry[MAX_TRANSPOSITION_SIZE];
 
 		this.evaluator = evaluator;
 	}
@@ -115,7 +115,8 @@ public class MyIterativeDeepeningAlphaBetaSearch implements AdversarialSearch<St
 	@Override
 	public Action makeDecision(State state) {
 		metrics = new Metrics();
-		this.transpositionTable = new TranspositionTableEntry[MAX_TRANSPOSITION_SIZE];
+		// this.transpositionTable = new
+		// TranspositionTableEntry[MAX_TRANSPOSITION_SIZE];
 
 		// StringBuffer logText = null;
 		State.Turn player = game.getPlayer(state);
@@ -170,35 +171,7 @@ public class MyIterativeDeepeningAlphaBetaSearch implements AdversarialSearch<St
 		updateMetrics(depth);
 
 		if (game.isTerminal(state) || depth >= currDepthLimit || timer.timeOutOccurred()) {
-
-			long zobrist = hashState(state);
-			double value;
-			int hashIndex = (int) (zobrist % MAX_TRANSPOSITION_SIZE);
-			TranspositionTableEntry entry = transpositionTable[hashIndex];
-
-			// if (checkTranspositionTable(zobrist))
-
-			if (entry == null) {
-				value = eval(state, player);
-				transpositionTable[hashIndex] = new TranspositionTableEntry(zobrist, depth, value, state.getTurn());
-				return value;
-			} else if (entry.getZobrist() == zobrist && entry.getDepth() >= depth) {
-				return state.getTurn().equals(entry.getPlayer()) ? entry.getEval() : -entry.getEval();
-			} else if (entry.getZobrist() == zobrist && entry.getDepth() < depth) {
-				value = eval(state, player);
-				transpositionTable[hashIndex] = new TranspositionTableEntry(zobrist, depth, value, state.getTurn());
-				return value;
-			} else if (entry.getZobrist() != zobrist && entry.getDepth() < depth) {
-				value = eval(state, player);
-				transpositionTable[hashIndex] = new TranspositionTableEntry(zobrist, depth, value, state.getTurn());
-				return value;
-			} else if (entry.getZobrist() != zobrist && entry.getDepth() >= depth) {
-				return eval(state, player);
-			} else {
-				return eval(state, player);
-			}
-
-			// return eval(state, player);
+			return updateTranspositionTable(state, player, depth);
 		} else {
 			double value = Double.NEGATIVE_INFINITY;
 			// for (A action : orderActions(state, game.getActions(state), player, depth)) {
@@ -218,34 +191,7 @@ public class MyIterativeDeepeningAlphaBetaSearch implements AdversarialSearch<St
 		updateMetrics(depth);
 
 		if (game.isTerminal(state) || depth >= currDepthLimit || timer.timeOutOccurred()) {
-			long zobrist = hashState(state);
-			double value;
-			int hashIndex = (int) (zobrist % MAX_TRANSPOSITION_SIZE);
-			TranspositionTableEntry entry = transpositionTable[hashIndex];
-
-			// if (checkTranspositionTable(zobrist))
-
-			if (entry == null) {
-				value = eval(state, player);
-				transpositionTable[hashIndex] = new TranspositionTableEntry(zobrist, depth, value, state.getTurn());
-				return value;
-			} else if (entry.getZobrist() == zobrist && entry.getDepth() >= depth) {
-				return state.getTurn().equals(entry.getPlayer()) ? entry.getEval() : -entry.getEval();
-			} else if (entry.getZobrist() == zobrist && entry.getDepth() < depth) {
-				value = eval(state, player);
-				transpositionTable[hashIndex] = new TranspositionTableEntry(zobrist, depth, value, state.getTurn());
-				return value;
-			} else if (entry.getZobrist() != zobrist && entry.getDepth() < depth) {
-				value = eval(state, player);
-				transpositionTable[hashIndex] = new TranspositionTableEntry(zobrist, depth, value, state.getTurn());
-				return value;
-			} else if (entry.getZobrist() != zobrist && entry.getDepth() >= depth) {
-				return eval(state, player);
-			} else {
-				return eval(state, player);
-			}
-
-			// return eval(state, player);
+			return updateTranspositionTable(state, player, depth);
 		} else {
 			double value = Double.POSITIVE_INFINITY;
 			// for (A action : orderActions(state, game.getActions(state), player, depth)) {
@@ -343,7 +289,7 @@ public class MyIterativeDeepeningAlphaBetaSearch implements AdversarialSearch<St
 			// return game.getUtility(state, player);
 		}
 
-		if (player.equals(State.Turn.BLACK)) {
+		if (player.equals(State.Turn.WHITE)) {
 			return game.getUtility(state, player);
 		} else {
 
@@ -371,6 +317,39 @@ public class MyIterativeDeepeningAlphaBetaSearch implements AdversarialSearch<St
 			else
 				return score;
 		}
+	}
+
+	public double updateTranspositionTable(State state, Turn player, int depth) {
+		long zobrist = hashState(state);
+		double value;
+		int hashIndex = (int) (zobrist % MAX_TRANSPOSITION_SIZE);
+		TranspositionTableEntry entry = transpositionTable[hashIndex];
+
+		// if (checkTranspositionTable(zobrist))
+
+		if (entry == null) {
+			value = eval(state, player);
+			transpositionTable[hashIndex] = new TranspositionTableEntry(zobrist, depth, value, state.getTurn());
+			return value;
+		} else if (entry.getZobrist() == zobrist && entry.getDepth() >= depth) {
+			// return state.getTurn().equals(entry.getPlayer()) ? entry.getEval() :
+			// -entry.getEval();
+			return entry.getEval();
+		} else if (entry.getZobrist() == zobrist && entry.getDepth() < depth) {
+			value = eval(state, player);
+			transpositionTable[hashIndex] = new TranspositionTableEntry(zobrist, depth, value, state.getTurn());
+			return value;
+		} else if (entry.getZobrist() != zobrist && entry.getDepth() < depth) {
+			value = eval(state, player);
+			transpositionTable[hashIndex] = new TranspositionTableEntry(zobrist, depth, value, state.getTurn());
+			return value;
+		} else if (entry.getZobrist() != zobrist && entry.getDepth() >= depth) {
+			return eval(state, player);
+		} else {
+			return eval(state, player);
+		}
+
+		// return eval(state, player);
 	}
 
 	/**
