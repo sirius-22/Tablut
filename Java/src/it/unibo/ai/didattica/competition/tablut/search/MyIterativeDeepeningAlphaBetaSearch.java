@@ -3,6 +3,7 @@ package it.unibo.ai.didattica.competition.tablut.search;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Callable;
+import java.util.concurrent.Future;
 
 import aima.core.search.adversarial.AdversarialSearch;
 import aima.core.search.adversarial.Game;
@@ -39,7 +40,7 @@ public class MyIterativeDeepeningAlphaBetaSearch implements AdversarialSearch<St
 
 	public final static String METRICS_NODES_EXPANDED = "nodesExpanded";
 	public final static String METRICS_MAX_DEPTH = "maxDepth";
-	public final static int MAX_TRANSPOSITION_SIZE = 2048;
+	public final static int MAX_TRANSPOSITION_SIZE = 1 << 22;
 	public final static int ASSOCIATIVE_WAYS = 2;
 
 	protected Game<State, Action, State.Turn> game;
@@ -49,6 +50,7 @@ public class MyIterativeDeepeningAlphaBetaSearch implements AdversarialSearch<St
 	private boolean heuristicEvaluationUsed; // indicates that non-terminal nodes have been evaluated.
 	private Timer timer;
 	private boolean logEnabled;
+	private boolean enableNN;
 
 	private long[] zobrist;
 	private TranspositionTableEntry[] transpositionTable;
@@ -90,16 +92,17 @@ public class MyIterativeDeepeningAlphaBetaSearch implements AdversarialSearch<St
 	 * @param time    Maximal computation time in seconds.
 	 */
 	public MyIterativeDeepeningAlphaBetaSearch(Game<State, Action, State.Turn> game, double utilMin, double utilMax,
-			int time, long[] zobrist, ModelEvaluator evaluator) {
+			int time, long[] zobrist, ModelEvaluator evaluator, boolean enableNN) {
 		this.game = game;
 		this.utilMin = utilMin;
 		this.utilMax = utilMax;
 		this.timer = new Timer(time);
 
 		this.zobrist = zobrist;
-		this.transpositionTable = new TranspositionTableEntry[MAX_TRANSPOSITION_SIZE];
+		//this.transpositionTable = new TranspositionTableEntry[MAX_TRANSPOSITION_SIZE];
 
 		this.evaluator = evaluator;
+		this.enableNN = enableNN;
 	}
 
 	public void setLogEnabled(boolean b) {
@@ -115,8 +118,7 @@ public class MyIterativeDeepeningAlphaBetaSearch implements AdversarialSearch<St
 	@Override
 	public Action makeDecision(State state) {
 		metrics = new Metrics();
-		// this.transpositionTable = new
-		// TranspositionTableEntry[MAX_TRANSPOSITION_SIZE];
+		this.transpositionTable = new TranspositionTableEntry[MAX_TRANSPOSITION_SIZE];
 
 		// StringBuffer logText = null;
 		State.Turn player = game.getPlayer(state);
@@ -172,6 +174,7 @@ public class MyIterativeDeepeningAlphaBetaSearch implements AdversarialSearch<St
 
 		if (game.isTerminal(state) || depth >= currDepthLimit || timer.timeOutOccurred()) {
 			return updateTranspositionTable(state, player, depth);
+			// return eval(state, player);
 		} else {
 			double value = Double.NEGATIVE_INFINITY;
 			// for (A action : orderActions(state, game.getActions(state), player, depth)) {
@@ -192,6 +195,7 @@ public class MyIterativeDeepeningAlphaBetaSearch implements AdversarialSearch<St
 
 		if (game.isTerminal(state) || depth >= currDepthLimit || timer.timeOutOccurred()) {
 			return updateTranspositionTable(state, player, depth);
+			// return eval(state, player);
 		} else {
 			double value = Double.POSITIVE_INFINITY;
 			// for (A action : orderActions(state, game.getActions(state), player, depth)) {
@@ -283,16 +287,15 @@ public class MyIterativeDeepeningAlphaBetaSearch implements AdversarialSearch<St
 	protected double eval(State state, State.Turn player) {
 
 		if (game.isTerminal(state)) {
-			// return game.getUtility(state, player);
+			//return game.getUtility(state, player);
 		} else {
 			heuristicEvaluationUsed = true;
-			// return game.getUtility(state, player);
+			//return game.getUtility(state, player);
 		}
-
-		if (player.equals(State.Turn.WHITE)) {
-			return game.getUtility(state, player);
-		} else {
-
+		
+		//return game.getUtility(state, player);
+		
+		if (enableNN) {
 			float score = 0f;
 			float[] encodedState = MyIterativeDeepeningAlphaBetaSearch.encodeState(state);
 
@@ -316,7 +319,10 @@ public class MyIterativeDeepeningAlphaBetaSearch implements AdversarialSearch<St
 				return -score;
 			else
 				return score;
+		} else {
+			return game.getUtility(state, player);
 		}
+		
 	}
 
 	public double updateTranspositionTable(State state, Turn player, int depth) {

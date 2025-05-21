@@ -31,15 +31,17 @@ public class SAMEClient extends TablutClient {
 
 	private int game;
 	private int timeout;
+	private boolean enableNN;
 	private ModelEvaluator evaluator;
 
 	private long[] zobrist;
 
-	public SAMEClient(String player, String name, int gameChosen, int timeout, String ipAddress)
+	public SAMEClient(String player, String name, int gameChosen, int timeout, String ipAddress, boolean enableNN)
 			throws UnknownHostException, IOException {
 		super(player, name, timeout, ipAddress);
 		this.game = gameChosen;
 		this.timeout = timeout;
+		this.enableNN = enableNN;
 
 		this.zobrist = new long[243];
 		try {
@@ -52,15 +54,7 @@ public class SAMEClient extends TablutClient {
 
 	public SAMEClient(String player, String name, int timeout, String ipAddress)
 			throws UnknownHostException, IOException {
-		this(player, name, 4, timeout, ipAddress);
-	}
-
-	public SAMEClient(String player, int timeout, String ipAddress) throws UnknownHostException, IOException {
-		this(player, "random", 4, timeout, ipAddress);
-	}
-
-	public SAMEClient(String player) throws UnknownHostException, IOException {
-		this(player, "random", 4, 60, "localhost");
+		this(player, name, 4, timeout, ipAddress, false);
 	}
 
 	public static void main(String[] args) throws UnknownHostException, IOException, ClassNotFoundException {
@@ -68,39 +62,54 @@ public class SAMEClient extends TablutClient {
 		String role = "";
 		String name = "SAME";
 		String ipAddress = "localhost";
-		int timeout = 40;
+		String enableNNString = "-NN";
+		boolean enableNN = false;
+		int timeout = 50;
+		
+		//System.out.println("length is " + args.length);
 
 		if (args.length < 1) {
 			System.out.println("You must specify which player you are (WHITE or BLACK)");
-			System.out.println("USAGE: ./runmyplayer <black|white> <timeout-in-seconds> <server-ip>");
+			System.out.println("USAGE: ./runmyplayer <black|white> <timeout-in-seconds> <server-ip> <enable-NN>");
 			System.exit(-1);
-		} else { // DA FARE -> CASE INSENSITIVE
+		} else { 
 			System.out.println(args[0]);
 			role = (args[0]);
 		}
-		if (args.length == 2) {
+		if (args.length >= 2) {
 			System.out.println(args[1]);
 			try {
 				timeout = Integer.parseInt(args[1]);
 			} catch (NumberFormatException e) {
 				System.out.println("Timeout must be an integer representing seconds");
-				System.out.println("USAGE: ./runmyplayer <black|white> <timeout-in-seconds> <server-ip> <debug>");
+				System.out.println("USAGE: ./runmyplayer <black|white> <timeout-in-seconds> <server-ip> <enable-NN>");
 				System.exit(-1);
 			}
 		}
-		if (args.length == 3) {
+		if (args.length >= 3) {
 			try {
 				timeout = Integer.parseInt(args[1]);
 			} catch (NumberFormatException e) {
 				System.out.println("Timeout must be an integer representing seconds");
-				System.out.println("USAGE: ./runmyplayer <black|white> <timeout-in-seconds> <server-ip> <debug>");
+				System.out.println("USAGE: ./runmyplayer <black|white> <timeout-in-seconds> <server-ip> <enable-NN>");
 				System.exit(-1);
 			}
 			ipAddress = args[2];
 		}
+		if (args.length == 4) {
+			System.out.println(args[3]);
+			if (enableNNString.equals(args[3])) {
+				enableNN = true;
+			} else {
+				System.out.println("To enable the Neural Network you have to write -NN");
+				System.out.println("USAGE: ./runmyplayer <black|white> <timeout-in-seconds> <server-ip> <enable-NN>");
+				System.exit(-1);
+			}
+		}
+		
 		System.out.println("Selected client: " + args[0]);
 
-		SAMEClient client = new SAMEClient(role, name, gametype, timeout, ipAddress);
+		SAMEClient client = new SAMEClient(role, name, gametype, timeout, ipAddress, enableNN);
 		client.run();
 	}
 
@@ -157,7 +166,7 @@ public class SAMEClient extends TablutClient {
 		// 1, this.timeout, this.zobrist);
 
 		MyIterativeDeepeningAlphaBetaSearch oracoloEnrico = new MyIterativeDeepeningAlphaBetaSearch(rules, -1, 1,
-				this.timeout, this.zobrist, this.evaluator);
+				this.timeout, this.zobrist, this.evaluator, this.enableNN);
 
 		Future<Action> future = null;
 

@@ -1000,6 +1000,9 @@ public class GameAshtonTablut implements Game {
 						buf[0] = i;
 						buf[1] = j;
 						pawns.add(buf);
+					} else if(state.getPawn(i, j).equalsPawn(State.Pawn.KING.toString())) {
+						kingX = i;
+						kingY = j;
 					} else if (state.getPawn(i, j).equalsPawn(State.Pawn.EMPTY.toString())) {
 						buf = new int[2];
 						buf[0] = i;
@@ -1221,7 +1224,7 @@ public class GameAshtonTablut implements Game {
 	@Override
 	public double getUtility(State state, Turn player) {
 		double result = 0;
-
+		
 		if ((state.getTurn().equals(State.Turn.BLACKWIN) && player.equals(State.Turn.BLACK))
 				|| state.getTurn().equals(State.Turn.WHITEWIN) && player.equals(State.Turn.WHITE))
 			result = 1;
@@ -1231,42 +1234,40 @@ public class GameAshtonTablut implements Game {
 		else if (state.getTurn().equals(State.Turn.DRAW))
 			result = 0;
 		else {
-
+			
 			// HEURISTICS FOR NON TERMINAL STATES
-
+			
+			
 			// WHITE PLAYER
-			if (player.equals(State.Turn.WHITE)) {
-				result += (1 - (double) state.getNumberOf(State.Pawn.BLACK) / 16) * 0.3;
-				result -= (1 - (double) state.getNumberOf(State.Pawn.WHITE) / 8) * 0.5;
-
+			if (player.equals(State.Turn.WHITE) /*&& state.getTurn().equals(State.Turn.BLACK)) ||
+					(player.equals(State.Turn.BLACK) && state.getTurn().equals(State.Turn.BLACK))*/) {
+				result += (1 - (double)state.getNumberOf(State.Pawn.BLACK) / 16) * 0.3;
+				result -= (1 - (double)state.getNumberOf(State.Pawn.WHITE) / 8) * 0.5;
+				
+				//result -= getSurroundKing(state);
 				result += getValueKing(state);
-
-				// result += getValueWhitePawns(state);
-				// result -= getValueBlackPawn(state);
-			} else {
-				result -= (1 - (double) state.getNumberOf(State.Pawn.BLACK) / 16) * 0.3;
-				result += (1 - (double) state.getNumberOf(State.Pawn.WHITE) / 8) * 0.5;
-
-				// result -= getValueKing(state);
-
-				// result += getValueWhitePawns(state);
-				// result -= getValueBlackPawn(state);
-			}
+				
+				//result += getValueWhitePawns(state);
+				//result -= getValueBlackPawn(state);
 
 			// BLACK PLAYER
-			// else if (player.equals(State.Turn.BLACK)) {
-			// result -= (1 - (double)state.getNumberOf(State.Pawn.BLACK) / 16) * 0.3;
-			// result += (1 - (double)state.getNumberOf(State.Pawn.WHITE) / 8) * 0.5;
-
-			// result -= getValueKing(state);
-
-			// add heuristic to compute capturing KING
-			// ...
-			// }
-
+			} else /*if ((player.equals(State.Turn.WHITE) && state.getTurn().equals(State.Turn.WHITE)) || 
+					(player.equals(State.Turn.BLACK) && state.getTurn().equals(State.Turn.WHITE))) */{
+				result -= (1 - (double)state.getNumberOf(State.Pawn.BLACK) / 16) * 0.3;
+				result += (1 - (double)state.getNumberOf(State.Pawn.WHITE) / 8) * 0.5;
+				
+				result += getSurroundKing(state);
+				//result -= getValueKing(state);
+				
+				//result -= getValueWhitePawns(state);
+				//result += getValueBlackPawn(state);
+			}
+			
+			
 		}
-
-		// System.out.println("The result is " + result);
+		
+		
+		//System.out.println("The result is " + result);
 		return result;
 	}
 
@@ -1278,8 +1279,18 @@ public class GameAshtonTablut implements Game {
 
 		return ((double) (4 - minDistance) / 4) * 0.15;
 	}
+	
+	private double getSurroundKing(State state) {		
+		int topP = state.getPawn(kingY - 1, kingX).equals(State.Pawn.BLACK) ? 1 : 0;
+		int botP = state.getPawn(kingY + 1, kingX).equals(State.Pawn.BLACK) ? 1 : 0;
+		int rightP = state.getPawn(kingY, kingX + 1).equals(State.Pawn.BLACK) ? 1 : 0;
+		int leftP = state.getPawn(kingY, kingX - 1).equals(State.Pawn.BLACK) ? 1 : 0;
+		int sum = topP + botP + rightP + leftP;
+		
+		return ((double)sum / 4) * 0.15;
+	}
 
-	private double getValueWhitePawns(State state) {
+	//private double getValueWhitePawns(State state) {
 
 		// CHECK PAWN STRUCTURE
 		// e.g. if a pawn can surround many black pawns -> more value
@@ -1290,7 +1301,7 @@ public class GameAshtonTablut implements Game {
 		// KING SAFETY
 		// structural weakness in king's position
 
-		return 0;
-	}
+		//return 0;
+	//}
 
 }
