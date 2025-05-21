@@ -12,8 +12,6 @@ import java.util.Set;
 import java.util.logging.FileHandler;
 import java.util.logging.SimpleFormatter;
 
-import javax.swing.Action;
-
 import it.unibo.ai.didattica.competition.tablut.domain.State.Turn;
 import it.unibo.ai.didattica.competition.tablut.exceptions.ActionException;
 import it.unibo.ai.didattica.competition.tablut.exceptions.BoardException;
