@@ -6,9 +6,13 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.logging.FileHandler;
 import java.util.logging.SimpleFormatter;
+
+import javax.swing.Action;
 
 import it.unibo.ai.didattica.competition.tablut.domain.State.Turn;
 import it.unibo.ai.didattica.competition.tablut.exceptions.ActionException;
@@ -1138,8 +1142,7 @@ public class GameAshtonTablut implements Game {
 					} else {
 						break;
 					}
-					// se la cella figura nell'array delle celle vuote -> sali ancora
-					// else -> finisci e passa alla possa
+					
 				}
 
 			}
@@ -1150,6 +1153,28 @@ public class GameAshtonTablut implements Game {
 		 * System.out.println(a.toString()); System.out.println("\n");
 		 */
 
+			List<Action> statesreduced = reducedWithSymmetries(result);
+
+		return statesreduced;
+	}
+
+	private List<Action> reducedWithSymmetries(List<Action> actions) {
+		Set<String> uniqueActions = new HashSet<>();
+		List<Action> result = new ArrayList<>();
+		for (Action action : actions) {
+			List<String> symmetries = action.generateSymmetries();
+			boolean found = false;
+			for (String s : symmetries) {
+				if (uniqueActions.contains(s)) {
+					found = true;
+					break;
+				}
+			}
+			if (!found) {
+				uniqueActions.add(symmetries.get(0)); // canonical form
+				result.add(action);
+			}
+		}
 		return result;
 	}
 
@@ -1270,7 +1295,6 @@ public class GameAshtonTablut implements Game {
 		return result;
 	}
 
-	// Returns a double, which is greater the closer the king is to the edge
 	private double getValueKing(State state) {
 		int minDistanceX = Math.min(kingX, state.getBoard().length - kingX);
 		int minDistanceY = Math.min(kingY, state.getBoard().length - kingY);
