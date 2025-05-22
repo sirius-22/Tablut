@@ -3,6 +3,8 @@ package it.unibo.ai.didattica.competition.tablut.domain;
 import java.io.IOException;
 import java.io.Serializable;
 import java.security.InvalidParameterException;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * this class represents an action of a player
@@ -85,4 +87,41 @@ public class Action implements Serializable {
 		return Integer.parseInt(this.to.charAt(1) + "") - 1;
 	}
 
+	/**
+	 * @return the list of all the symmetries of the action
+	 */
+	public List<String> generateSymmetries() {
+		List<String> symmetries = new ArrayList<>();
+		for (int i = 0; i < 4; i++) { // 0°, 90°, 180°, 270°
+			String fromRot = rotate(this.from, i);
+			String toRot = rotate(this.to, i);
+			symmetries.add(fromRot + "->" + toRot);
+			symmetries.add(flipHorizontal(fromRot) + "->" + flipHorizontal(toRot));
+		}
+		return symmetries;
+	}
+
+	/**
+	 * @return the list of all the symmetries of the action
+	 */
+	private String rotate(String pos, int times) {
+		int col = pos.charAt(0) - 'a';
+		int row = pos.charAt(1) - '1';
+		for (int i = 0; i < times; i++) {
+			int temp = col;
+			col = 8 - row;
+			row = temp;
+		}
+		return "" + (char) ('a' + col) + (char) ('1' + row);
+	}
+	
+	/**
+	 * @return the list of all the symmetries of the action
+	 */
+	private String flipHorizontal(String pos) {
+		int col = pos.charAt(0) - 'a';
+		return "" + (char) ('a' + (8 - col)) + pos.charAt(1);
+	}
 }
+
+
