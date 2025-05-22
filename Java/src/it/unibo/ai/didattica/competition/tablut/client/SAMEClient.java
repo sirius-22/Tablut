@@ -40,7 +40,7 @@ public class SAMEClient extends TablutClient {
 			throws UnknownHostException, IOException {
 		super(player, name, timeout, ipAddress);
 		this.game = gameChosen;
-		this.timeout = timeout;
+		this.timeout = timeout - 3;
 		this.enableNN = enableNN;
 
 		this.zobrist = new long[243];
@@ -64,7 +64,7 @@ public class SAMEClient extends TablutClient {
 		String ipAddress = "localhost";
 		String enableNNString = "-NN";
 		boolean enableNN = false;
-		int timeout = 50;
+		int timeout = 60;
 		
 		//System.out.println("length is " + args.length);
 
