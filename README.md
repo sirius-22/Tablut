@@ -89,7 +89,7 @@ Tablut/
 ### 🧾 Player Command Structure
 
 ```bash
-./runmyplayer <role> <timeout-in-seconds> <server-ip> <-NN>
+./runmyplayer.sh <role> <timeout-in-seconds> <server-ip> <-NN>
 ```
 
 * `<role>`: `black` or `white` (mandatory)
