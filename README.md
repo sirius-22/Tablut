@@ -1,10 +1,17 @@
 
 <h1 align="center">✨SAME_Tablut✨</h1>
 
-⚫⚪⚫ *Tablut project for [Foundations Of Artificial Intelligence T](https://www.unibo.it/it/studiare/insegnamenti-competenze-trasversali-moocs/insegnamenti/insegnamento/2024/468002)*
-📍 *A.Y. 2024/2025 - University of Bologna* ⚪⚫⚪
 
----
+⚫⚪⚫ <em>Tablut project for <a href="https://www.unibo.it/it/studiare/insegnamenti-competenze-trasversali-moocs/insegnamenti/insegnamento/2024/468002">Foundations Of Artificial Intelligence M</a></em> ⚪⚫⚪<br/>
+<em>📍A.Y. 2024/2025 - University of Bologna</em> 
+
+
+<div align="center">
+  <img src="TablutTable.png" alt="Tablut table" width="350"/>
+</div>
+
+<hr/>
+
 
 ## ♟️ Overview
 
