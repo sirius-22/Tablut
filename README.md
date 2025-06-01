@@ -24,6 +24,8 @@ We implemented a Java-based client that plays Tablut using:
 
 ## 🧠 Neural Network Details
 
+![AImodel](AImodel.jpg)
+
 We trained a neural network to assess game states using a dataset of past Tablut matches:
 
 * Each match outcome was labeled:
