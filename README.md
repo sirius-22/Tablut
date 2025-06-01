@@ -115,5 +115,14 @@ Example:
 ## 👥 Team SAME
 
 A team of students passionate about AI and games, blending classic algorithms with modern ML.
+The group name SAME comes from the initials of each member:
+
+| Name               | Surname   | Username                                                    |
+| :----------------- | :-------- | :---------------------------------------------------------- |
+| **🔵 S**iria       | Savignano | [**sirius-22**](https://github.com/sirius-22)               |
+| **🟡 A**lberto     | Catellani | [**11THUNDER11**](https://github.com/11THUNDER11)           |
+| **🟣 M**. | Anonymous | [**ProphetOfTheVoid**](https://github.com/ProphetOfTheVoid) |
+| **🟢 E**nrico      | Minguzzi  | [**ArbiterMob**](https://github.com/ArbiterMob)             |
+
 
 > Feel free to fork, learn, contribute, or challenge our agent! 🔥
