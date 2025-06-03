@@ -45,6 +45,28 @@ The model was trained using **PyTorch** and later integrated into the Java clien
 
 ---
 
+## ⚡ Optimization
+
+To speed up the search in the game state space and enhance the efficiency of our AI agent, we applied the following optimizations:
+
+### 🔁 Symmetry Reduction
+
+We implemented **state symmetry detection** to reduce redundant branches in the search tree.
+Since many Tablut positions are symmetric (due to the board's square layout), we normalize states by generating their **canonical symmetric forms**, significantly reducing the number of unique game states to evaluate.
+
+> ✅ This drastically cuts down the number of states explored during the Alpha-Beta search.
+
+### 🗃️ Transposition Table (State Caching)
+
+We used a **transposition table** to cache already evaluated states.
+If a board position is encountered again (even through a different sequence of moves), its previously computed evaluation is reused instead of recalculated.
+
+> 💡 Transposition tables help avoid recomputing the same state multiple times, improving performance and allowing deeper search within the same time constraints.
+
+Together, these techniques make our agent **smarter**, **faster**, and more **resource-efficient** during both early and late phases of the game.
+
+---
+
 ## 🗂️ Repository Structure
 
 ```
